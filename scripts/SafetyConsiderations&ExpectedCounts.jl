@@ -58,4 +58,12 @@ approx_total_dose_upper_bound = total_dose(dose_per_hour_unshielded, approx_dist
 approx_total_dose_upper_est = total_dose(Measurements.value(dose_per_hour_shielded),
                                     approx_distance, approx_time) |>u"pSv"
 
-5
+
+## Expected counts
+d = 2.54u"cm"
+r = 5u"cm"
+# N̄1 = (π * (d/2)^2 ) / (4π*r^2) * N₂₀₂₁ |> u"Bq"
+N̄ = d^2 / (16 * r^2) * N₂₀₂₁  |> u"Bq"
+# numerical_error = (abs(N̄ - N̄1), N̄/N̄1)
+
+total_counts_upper_bound = N̄ * 2 * 10
