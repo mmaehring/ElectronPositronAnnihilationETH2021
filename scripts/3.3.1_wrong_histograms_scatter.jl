@@ -48,7 +48,7 @@ scatter!(ζvoltages_LLD_2, ζcounts_2, color="red",
 # savefig("200mV10s2.png")
 
 ## Precise ξ
-cd("C:/Users/marcu/OneDrive/Desktop/PraktikumIII/e+e-_Annihilation/data/Data_e+e-_A_MM_CT_23.11.21/3.3/3.3.1/")
+cd("C:/Users/marcu/OneDrive/Desktop/PraktikumIII/e+e-_Annihilation/data/3.3/3.3.1/")
 searchdir(path,key) = filter(x->contains(x,key), readdir(path));
 runs = searchdir("PreciseMeasurements", ".txt");
 
@@ -112,13 +112,3 @@ histogram(ξ300mV[!, :LLD], bins=0:0.3:1.5, weights=ξ300mV[!, :Count],
 # savefig("300mV20s_hist.png")
 a = [ξ300mV[!, :Count][findall(x->i<x<=i+0.3, ξ300mV[!, :LLD])]  for i in [0, 0.3, 0.6, 0.9, 1.2]]
 weight = mean.(a) # better counts?
-
-# ## 600mV
-# histogram(ξ600mV[!, :LLD], bins=0:0.6:5.0, weights=ξ600mV[!, :Count],
-#         title="Precise: Window=600 mV, 20s measuring",
-#         xlabel="LLD Threshhold (V)",
-#         ylabel="Detected counts",
-#         titlefont=12,
-#         xticks=0:0.3:5.0
-# )
-#
