@@ -11,13 +11,13 @@ counts = [0, 0 , 1  , 0  ,   0,   0,   0,   2,  67, 187, 321, 879, 1218, 1664,
 
 plot(voltages[8:end], counts[8:end], yaxis=:log,
    xticks=[500, 550, 600, 650, 700, 750, 800,  850, 900,  950, 1000, 1050, 1100, 1150, 1200],
-   xlabel="HV (V)", ylabel="Amount of measured counts (log)",
+   xlabel="HV (V)", ylabel="Measured counts (log)",
    title="Working point inspection of the PMT",
    label=:none, legend=:bottomright,
    titlefontsize = 8
 );
 scatter!(voltages[8:end], counts[8:end], label="Measured points");
-vline!([850], label="Suggested working point");
+vline!([850], label="Suggested working point", color=:black);
 plot!(500:100:1250, 2162*ones(length(500:100:1250)),
    xlims=(485, 1225),
    linestyle=:dash, # ribbon=(221.65),
@@ -25,4 +25,4 @@ plot!(500:100:1250, 2162*ones(length(500:100:1250)),
 );
 annotate!(720,5000,
          Plots.text("Average count of the values in \n the suggested range: 2162 ± 220", 7, :dark))
-# savefig("working_point_of_pmt.png")
+# savefig("plots\\working_point_of_pmt.png")

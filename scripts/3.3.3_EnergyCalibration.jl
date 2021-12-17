@@ -10,7 +10,7 @@ begin
     # Fitting
     using LsqFit, Distributions
     # additional utilities
-    using SpecialFunctions, Interpolations
+    using SpecialFunctions, Interpolations, Combinatorics
 end
 
 ## Helper functions

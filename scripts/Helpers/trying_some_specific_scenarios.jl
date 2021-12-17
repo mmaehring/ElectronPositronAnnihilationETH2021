@@ -54,7 +54,7 @@ p0 = [0.5, 0.5]
 # p1, p2 = fitted.param
 
 # Errors of the ydata
-weights_errors = Measurements.uncertainty.(ydata)
+weights_errors = 1 ./ (Measurements.uncertainty.(ydata)).^2
 
 # Compute with accounting for error in y
 fitted = curve_fit(model, jacobian_model,
