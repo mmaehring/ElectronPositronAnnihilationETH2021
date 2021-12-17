@@ -4,7 +4,7 @@
 begin
     using DrWatson
     # Plotting
-    using StatsPlots, UnitfulRecipes
+    using StatsPlots, UnitfulRecipes, Measures
     # Dealing with data
     using Unitful, Measurements, DataFrames, CSV, Statistics, StatsBase
     # Fitting
@@ -40,18 +40,29 @@ begin
     p_uncal_spectrum = plot(spectrum_data[!, :Channel], spectrum_data[!, :Count],
         seriestype=:step,
         xlims=(0,1000), xticks=0:100:1000, xlabel="Channel",
-        title="Entire spectrum - Uncalibrated", ylabel="Detected counts",
-        size=(1200,800), label="Counts", dpi=900
+        title="MCA spectrum - Uncalibrated", ylabel="Detected counts",
+        size=(700,500), label="Counts", dpi=700, titlefontsize=11, xguidefontsize=10, yguidefontsize=10,
+        margin = 5mm
     )
-    fontsize=7
-    annotate!(80, 2.07e4, text("Backscattering", :green, fontsize))
-    annotate!(215, 4.6e3, text("511 keV Compton edge", :black, fontsize, rotation = -70.0))
-    annotate!(120, 1.1e4, text("Photoelectric effect", :red, fontsize))
-    annotate!(310, 2.175e4, text("511 keV peak", :darkblue, fontsize))
-    annotate!(600, 1.7e3, text("1275 keV Compton edge", :purple, fontsize))
-    annotate!(780, 2.5e3, text("1275 keV peak", :orange, fontsize))
+    # savefig("plots\\MCA_Spectrum_NoCoinc_RAW_Mod.pdf")
 
-    # savefig("Spectrum_Big.pdf")
+    #TODO -> fix the annotations, they are most likely wrong. Include electron capture and photopeaks = photoelectric effect
+    fontsize=7
+    colors = distinguishable_colors(12)[5:end]
+    # annotate!(80, 2.07e4, text("Electron capture", :green, fontsize))
+    # annotate!(215, 5.1e3, text("511 keV Compton edge", :black, fontsize, rotation = -70.0))
+    # annotate!(120, 1.1e4, text("Backscattering", :red, fontsize))
+    # annotate!(310, 2.175e4, text("511 keV peak", :darkblue, fontsize))
+    # annotate!(600, 1.7e3, text("1275 keV Compton edge", :purple, fontsize))
+    # annotate!(780, 2.5e3, text("1275 keV peak", :orange, fontsize))
+    annotate!(80, 2.07e4, text("Electron capture", colors[1] , fontsize))
+    annotate!(215, 5.1e3, text("511 keV Compton edge", colors[2] , fontsize, rotation = -70.0))
+    annotate!(120, 1.1e4, text("Backscattering",  colors[3], fontsize))
+    annotate!(310, 2.175e4, text("511 keV peak",  colors[4], fontsize))
+    annotate!(600, 1.7e3, text("1275 keV Compton edge",  colors[6], fontsize))
+    annotate!(780, 2.5e3, text("1275 keV peak",  colors[8], fontsize))
+
+    # savefig("plots\\MCA_Spectrum_NoCoinc_Annotated_Mod.pdf")
 end
 
 p_uncal_log = plot(spectrum_data[!, :Channel], log.(10, spectrum_data[!, :Count]),

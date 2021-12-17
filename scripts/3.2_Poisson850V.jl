@@ -29,11 +29,11 @@ gaussian_ratio = [pdf(pdf_f, i) / pdf(adj_pdf_f, i) for i in 2000:1:2400];
 gaussian_ratio_inv = gaussian_ratio.^-1;
 
 begin
-    p2 = scatter(2000:1:2400, gaussian_ratio, label=:none,
-    xlabel="Detected Counts", yticks=0.6:0.2:1.4, markersize=2,
-    ylabel="Quotient blue/red"
+    p2 = scatter(2000:5:2400, gaussian_ratio[begin:5:end], label=:none,
+    xlabel="Detected Counts", yticks=0.6:0.2:1.4, markersize=3,
+    ylabel="Quotient blue/red", color=:purple
     )
-    hline!([1], color=:darkblue, label="1")
+    hline!([1], color=:black, label=:none)
 end
 
 begin
@@ -43,4 +43,4 @@ begin
     plot(p1, p2, layout=l, dpi=900, size=(700, 450))
 end
 
-savefig("plots\\PoissonQuotient900dpi.pdf")
+# savefig("plots\\PoissonQuotient900dpi.pdf")

@@ -1,3 +1,8 @@
+#=
+This program is for fitting the dynode curve to extract the fluorescence time
+Every file has the following structure: [time], [voltage], [empty]
+=#
+
 ## Import libraries
 begin
     using LsqFit
@@ -20,8 +25,7 @@ begin
     df[!, :Height] = abs.(df[!, :Height] * u"V") .|> u"mV"
 end;
 
-# plot(unproc_t*1e9, unproc_v*1e3)
-# vline!([-360])
+
 
 ## Initial Plot
 strt = 370;
@@ -93,71 +97,51 @@ end
 l = @layout [a{0.5h};
              b{0.5h}]
 
+
 plot(p_ez, p_adv, layout=l) # dpi=900)
-# begin
-# save_loc_double = "plots\\NaI(Ti)_Double_ResponseTime_Fluoresence_Decay2.pdf"
-# savefig(save_loc_double)
-# end
-
-
-## PMT fit
 
 ##
-# begin
-#     plot(pmtt, pmth, color=:blue, label="Collected data");
-#     idx = 335
-#     scatter!([pmtt[idx]], [pmth[idx]])
-# end
-# N_pmt_2(t, p) = @. p[3] * exp(-t/p[1]) + p[4] * exp(-t/p[2]) + p[5]/(p[6] - p[1]) * ( exp(-t/p[1]) - exp(-t/p[6]) )
-# fit_pmt2 = curve_fit(N_pmt_2, ustrip.(t), ustrip.(h), p0pmt, lower=lbpmt)
-# pmt_params2 = fit_pmt1.param
-
-# plot!(pmtt, N_pmt_2(ustrip.(pmtt), ustrip.(pmt_params2)), label= "Fit to data, decay time: $(round((pmt_params2[1]),digits=2)*u"ns")",)
-
 pmtt = df[!, :Time];
 pmth = df[!, :Height];
-N_pmt_2(t, p) = @. p[3] * exp(-t/p[1]) + p[4] * exp(-t/p[2]) + p[5]/(p[6] - p[1]) * ( exp(-t/p[1]) - exp(-t/p[6]) )
+N_pmt(t, p) = @. p[1] * exp(-t/p[2]) + p[3]*exp(-t/p[4]) - p[5] * exp(-t/p[6])
 
-begin
-    p0pmt = [230.0, 15.0, 120.0, 20.0, 1e-10, 5.0];
-    lbpmt = [1e-2, 1e-2, 1e-2, 1e-2, 1e-12, 1e-2];
-    rise_start = 377
-    fit_pmt2 = curve_fit(N_pmt_2, ustrip.(pmtt[rise_start:end]), ustrip.(pmth[rise_start:end]), p0pmt, lower=lbpmt)
-    fit_pmt2_start = curve_fit(N_pmt_2, ustrip.(pmtt[2:end]), ustrip.(pmth[2:end]), p0pmt, lower=lbpmt)
-    midpoint = 227
-    fit_pmt2_start_mid = curve_fit(N_pmt_2, ustrip.(pmtt[midpoint:end]), ustrip.(pmth[midpoint:end]), p0pmt, lower=lbpmt)
-    pmt_params2 = fit_pmt2.param
-    pmt_params2_start = fit_pmt2_start.param
-    pmt_params2_start_mid = fit_pmt2_start_mid.param
-    vars = ["τ_s", "τ_f", "A", "B", "GNeR", "τ"]
-    @show vars
-    @show round.(pmt_params2; digits=2)
+p_pmt = begin
+    p0pmt = [120.0, 230.0, 80.0, 5.0, 50, 5.0];
+    # lbpmt = zeros(length(p0pmt))
+    lbpmt = [1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2];
 
-    plot(pmtt, pmth, color=:blue, label="Collected data");
-    plot!(pmtt[rise_start:end], N_pmt_2(ustrip.(pmtt[rise_start:end]), ustrip.(pmt_params2)),
-            color=:red, label= "Fit to data, decay time: $(round((pmt_params2[1]), digits=2)*u"ns")",
+    rise_start = 325
+    fit_pmt = curve_fit(N_pmt, ustrip.(pmtt[rise_start:end]), ustrip.(pmth[rise_start:end]), p0pmt, lower=lbpmt)
+    pmt_params = fit_pmt.param
+    # pmt_errors = confidence_interval(fit_pmt)
+    # @show round.(pmt_params; digits=2)
+
+    pmt_fit = plot(pmtt, pmth, color=:blue, label="Collected data");
+    plot!(pmtt[rise_start:end], N_pmt(ustrip.(pmtt[rise_start:end]), ustrip.(pmt_params)),
+            color=:red, label= "Fit to data",#, decay time: $(round((pmt_params[1]), digits=2)*u"ns")",
             xlabel="Time series",
             ylabel="Height (mV)",
             legendfontsize=7,
             axisfontsize=4
     ) #
-    plot!(pmtt[2:end], N_pmt_2(ustrip.(pmtt[2:end]), ustrip.(pmt_params2_start)),
-            color=:green, label= "Fit to data (from start), decay time: $(round((pmt_params2_start[1]), digits=2)*u"ns")",
-            xlabel="Time series",
-            ylabel="Height (mV)",
-            legendfontsize=7,
-            axisfontsize=4,
-            linstyle=:dot
-    ) #
-    plot!(pmtt[midpoint:end], N_pmt_2(ustrip.(pmtt[midpoint:end]), ustrip.(pmt_params2_start_mid)),
-            label= "Fit to data (from $(midpoint)ns), decay time: $(round((pmt_params2_start_mid[1]), digits=2)*u"ns")",
-            xlabel="Time series",
-            ylabel="Height (mV)",
-            legendfontsize=7,
-            axisfontsize=4, color=:darkblue,
-            linstyle=:dot
-    ) #
+    latstring = let p = round.(pmt_params; digits=2)
+        A = p[1]
+        τs = p[2]
+        B = p[3]
+        τf = p[4]
+        C = p[5]
+        τ = p[6]
+        (L"""A = %$(A), \tau_s = %$(τs)""", L"""B = %$(B), \tau_f = %$(τf)""", L"""C=%$(C), \tau=%$(τ)""")
+    end
+
     scatter!([pmtt[rise_start]], [pmth[rise_start]], color=:darkred, label="Plot from which i start the red fit")
-    scatter!([pmtt[midpoint]], [pmth[midpoint]], label="Plot from which i start the purple fit", color=:orange)
+    annotate!(750, 85, text(L"""A e^{-\frac{t}{\tau_s}} + B e^{-\frac{t}{\tau_f}} - C e^{-\frac{t}{\tau}}""", :red, 12));
+    annotate!(750, 72, text(latstring[1], 10) );
+    annotate!(750, 62, text(latstring[2], 10) );
+    annotate!(750, 52, text(latstring[3], 10) );
 end
-savefig("plots\\help_me.png")
+# savefig("plots\\help_me.png")
+
+l = @layout [a{0.5h};
+             b{0.5h}]
+plot(p_ez, p_pmt, layout=l)
