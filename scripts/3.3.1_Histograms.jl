@@ -66,12 +66,12 @@ begin
                 title="850V bias, 50mV window, 20 s acquisition time"
         );
         l = @layout [a{0.5w} b{0.5w}];
-        plot(h1, h2, layout=l, dpi=800, size = (1400, 500),
-             legend=:topright, legendfontsize=10,
+        plot(h1, h2, layout=l, dpi=800, size = (1100, 500),
+             legend=:topright, legendfontsize=9,
              margin = 6mm,
              titlefontsize=12
         );
-        # savefig("Histogram_3.3.1_upd_steps.png")
+        savefig("plots\\Histogram_3.3.1_upd_steps_1100_500.png")
 end
 
 ## Load data

@@ -216,6 +216,10 @@ p0_bounds = [1.2, 1.2] # we have to assign initial values inside the bounds
 
 fit_bounds = curve_fit(model, xdata, ydata, p0_bounds, lower=lb, upper=ub)
 
+
+# Weights -> 1/variance = 1/σ.^2   
+
+
 ###  Errors on fits - estimations
 
 # We can estimate errors on the fit parameters,
