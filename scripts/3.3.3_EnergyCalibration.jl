@@ -120,6 +120,7 @@ function poisson_coinfidence_band(ADC, Counts; α = 0.5, σC = 2)
     CountError = sqrt.(Counts)
     l = (Counts .- σC*CountError)
     u = (Counts .+ σC*CountError)
+    c_confidence=:red
     plot!(ADC, Counts, fillrange = u, linealpha=0,
           fillalpha = α, c = c_confidence, label = "Confidence band ($(σC)σ)", st=:step, linewidth=0
     )
@@ -239,7 +240,7 @@ end
 begin # Here CE stands for compton edge
     p_compton_edge_1275 = plot(CE1275_ADC, CE1275_CNT, color=1,
         seriestype=:step, size=(750,400), label="Recorded data", margin=3mm,
-        titlefontsize=10, dpi=900, #ylims=(0, 2500),
+        titlefontsize=10, dpi=900, xlabel="ADC", ylabel="Counts", xguidefontsize=9, yguidefontsize=9,#ylims=(0, 2500),
         title="Compton edge of 1275keV", legend=:bottomleft, legendfontsize=7
     )
     poisson_coinfidence_band(CE1275_ADC, CE1275_CNT, α=.15)
@@ -698,7 +699,7 @@ begin
     p_compton_continuum_511 = plot(spectrum_data[!, :Channel], spectrum_data[!, :Count],
         seriestype=:step, label="Recorded data",
         xlims=(0, 250),
-        xticks=(0:50:250, [string(round(adc_to_energy(i), digits=2)) for i in 0:50:250]),
+        xticks=(0:50:425, [string(round(adc_to_energy(i), digits=2)) for i in 0:50:425]),
         xlabel="Energy (keV)", xguidefontsize=9, yguidefontsize=9, titlefontsize=10,
         ylabel="Counts", lw=1.75, margin=3mm, dpi=750,
         title="Compton continuum and edge of 511keV"
