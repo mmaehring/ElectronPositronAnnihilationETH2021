@@ -7,7 +7,7 @@ using DataFrames
 using CSV
 
 data_path_ = "C:\\Users\\marcu\\Pwogwamming\\JuliaThings\\ETH\\some_error_variables.csv"
-ydata = CSV.File(data_path,
+ydata = CSV.File(data_path_,
                         delim=',',
                         ignorerepeated=false,
                         missingstring="NA") |> DataFrame
@@ -154,11 +154,11 @@ degrees_of_freedom = length(ydata) - 2 # - 2 for the fit parameters
 
 χ²_distr = Distributions.Chisq(degrees_of_freedom - 1)
 
-α = 0.05
+α = 0.0005
 χ²_cutoff = Distributions.quantile(χ²_distr, 1 - α) # cutoff for
 
 if χ² < χ²_cutoff
-    print("Reject H₀! The fit is good at a 0.05 significance. ")
+    print("Reject H₀! The fit is good at a $(α*100)% significance. ")
 end
 
 # Best p - value for this χ²:

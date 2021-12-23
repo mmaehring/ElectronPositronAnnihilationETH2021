@@ -58,11 +58,11 @@ t_data = (t_data - t_data[0]) * 1e9
 v_data = df["Height"] * -1000
 v_err = np.full_like(v_data, 1)
 
-start = 180
-# start = 278
+# start = 250
+start = 328
 
 with plt.style.context("science"):
-    plt.figure(dpi=350, figsize=(9,4))
+    plt.figure(dpi=850, figsize=(9,4))
     plt.xlim(0, 1000)
     plt.tight_layout()
     plt.errorbar(t_data, v_data, yerr=v_err, capsize=0.8, errorevery=5, label="Data")
@@ -72,7 +72,7 @@ with plt.style.context("science"):
 
 
 
-lsq = BetterLeastSquares(line, t_data, v_data, v_err)
+lsq = BetterLeastSquares(line, t_data[start:], v_data[start:], v_err[start:])
 
 m = Minuit(lsq, A=120.0, a=230, B = 520.0, b = 5.0, C=1200.0, c=5.0)
 for i in m.parameters:
@@ -81,8 +81,8 @@ for i in m.parameters:
 # print(m.limits)
 
 m.migrad()
-# m.hesse() -> fails
-
+# m.hesse() #-> fails
+plt.tight_layout(pad=1.10)
 plt.plot(t_data[start:], line(t_data[start:], *m.values), label="Fit")
 plt.scatter([t_data[start]], [v_data[start]], color="red", s=2, zorder=3, label="Starting point of fit")
 plt.annotate("$A e^{-t / \\tau_s} + B e^{-t / \\tau_f} - C e^{-t / \\tau}$", (600, 83), fontsize=12)
@@ -93,27 +93,29 @@ plt.annotate("$\\tau_f=$"+f"{round(m.values[3], ndigits=2)}"+ "$\\pm$" + f"{roun
 plt.annotate("$C=$"+f"{round(m.values[4], ndigits=2)}"+ "$\\pm$" + f"{round(m.errors[4], ndigits=2)}", (600, 53))
 plt.annotate("$\\tau=$"+f"{round(m.values[5], ndigits=2)}"+ "$\\pm$" + f"{round(m.errors[5], ndigits=2)}", (800, 53))
 plt.legend() 
+plt.savefig(f"3.1_iminuit_FIT_Padded_start{start}.pdf")
 
 print(m)
 
-from matplotlib import gridspec
-fig = plt.figure(figsize=(12, 15), dpi=900)
-# fig.tight_layout()
-fig = gridspec.GridSpec(3, 1, height_ratios=[1,1,1])
+# from matplotlib import gridspec
+# fig = plt.figure(figsize=(12, 15), dpi=900)
+# # fig.tight_layout()
+# fig = gridspec.GridSpec(3, 1, height_ratios=[1,1,1])
 
-x1 = plt.subplot(fig[0])
-m.draw_profile("a")
-plt.title(f"$\\tau_s = {round(m.values[1], ndigits=2)} \\pm {round(m.errors[1], ndigits=2)}$ ns")
-plt.xlabel("$\\tau_s $")
+# x1 = plt.subplot(fig[0])
+# m.draw_profile("a")
+# plt.title(f"$\\tau_s = {round(m.values[1], ndigits=2)} \\pm {round(m.errors[1], ndigits=2)}$ ns")
+# plt.xlabel("$\\tau_s $")
 
-x2 = plt.subplot(fig[1])
-m.draw_profile("b")
-plt.title(f"$\\tau_f = {round(m.values[3], ndigits=2)} \\pm {round(m.errors[3], ndigits=2)}$ ns")
-plt.xlabel("$\\tau_f $")
+# x2 = plt.subplot(fig[1])
+# m.draw_profile("b")
+# plt.title(f"$\\tau_f = {round(m.values[3], ndigits=2)} \\pm {round(m.errors[3], ndigits=2)}$ ns")
+# plt.xlabel("$\\tau_f $")
 
-x3 = plt.subplot(fig[2])
-m.draw_profile("c")
-plt.title(f"$\\tau = {round(m.values[5], ndigits=2)} \\pm {round(m.errors[5], ndigits=2)}$ ns")
-plt.xlabel("$\\tau $")
+# x3 = plt.subplot(fig[2])
+# m.draw_profile("c")
+# plt.title(f"$\\tau = {round(m.values[5], ndigits=2)} \\pm {round(m.errors[5], ndigits=2)}$ ns")
+# plt.xlabel("$\\tau $")
 
+# # plt.savefig("3.1_FitQuality.pdf")
 

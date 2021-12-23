@@ -69,5 +69,27 @@ end
 
 
 
-
 ## Converting ADC to energies
+E_ADC(x) = (-11.4 ± 3.5) + (0.617 ± 0.0037) * x
+ADC_E(x) = (x - (-11.4 ± 3.5)) / (0.617 ± 0.0037)
+
+begin
+    x = spectrum_data[!, :ADC]
+    y = spectrum_data[!, :Count]
+    y_error_array = spectrum_data[!, :Error]
+    l = (y .- 2*y_error_array)
+    u = (y .+ 2*y_error_array)
+    clrs = [1, :red]
+    c_confidence = clrs[2]
+    α = 0.5
+    plot(x, y, fillrange = u, fillalpha = α, c = c_confidence, label = "Confidence band (2σ)", seriestype=:step,
+    xlims=(0,400), xticks= (0:100:500, [string(round(adc_to_energy(i), digits=2)) for i in 0:100:500]),
+    xlabel="Energy (keV)", linewidth=0,
+    title="MCA coincidence spectrum - Calibrated", ylabel="Detected counts",
+    size=(700,500), dpi=700, titlefontsize=11, xguidefontsize=10, yguidefontsize=10,
+    margin = 5mm
+    )
+    plot!(x, y, fillrange = l, st=:step, fillalpha = α, c = c_confidence, label = :none, linewidth=0)
+    plot!(x, y, color=clrs[1], st=:step, legend=:topleft, label="Fitted line", linewidth=0.7)
+    # savefig("plots\\3.4.2_MCA_coinc_calib.pdf")
+end

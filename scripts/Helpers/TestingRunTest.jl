@@ -44,7 +44,7 @@ function compute_runs(data, model_data)
 end
 
 # Less than 10-15 points -> otherwise gaussian.
-function ratio_test(data, model_data)
+function run_test(data, model_data)
     N = length(data)
     Na = sum(0 .> (model_data .- data))
     Nb = sum(0 .< (model_data .- data))
@@ -134,7 +134,7 @@ begin # polynomial
     scatter!(x, y_real .± yerr, label="Real data")
     annotate!(5, 35, text("Number of runs: $(compute_runs(y_real, yfunc(x)))", 10))
     annotate!(5, 25, text("Probability: $(round(prob_r_runs(y_real, yfunc(x)), digits=3)*1e2)%", 10))
-    r, rexp, V, σ, N, Na = ratio_test(y_real, yfunc(x))
+    r, rexp, V, σ, N, Na = run_test(y_real, yfunc(x))
     # @info "$(100 - 100*cdf(Distributions.Normal(), (rexp - r)/σ)) %"
     annotate!(7.5, -3, text("We observe $(r) runs but expect $(rexp±σ) => $(round((rexp-r)/σ, digits=2)) σ", 9))
     annotate!(7.5, -5, text("Good at a one tailed test with probability $( round(100 - 100*cdf(Distributions.Normal(), (rexp - r)/σ), digits=2)) %", 9))
