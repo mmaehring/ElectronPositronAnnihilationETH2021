@@ -699,7 +699,7 @@ begin
     p_compton_continuum_511 = plot(spectrum_data[!, :Channel], spectrum_data[!, :Count],
         seriestype=:step, label="Recorded data",
         xlims=(0, 250),
-        xticks=(0:50:425, [string(round(adc_to_energy(i), digits=2)) for i in 0:50:425]),
+        xticks=(0:50:400, [string(round(adc_to_energy(i), digits=2)) for i in 0:50:42]),
         xlabel="Energy (keV)", xguidefontsize=9, yguidefontsize=9, titlefontsize=10,
         ylabel="Counts", lw=1.75, margin=3mm, dpi=750,
         title="Compton continuum and edge of 511keV"
