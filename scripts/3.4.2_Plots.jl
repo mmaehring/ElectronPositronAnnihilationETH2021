@@ -13,6 +13,8 @@ begin
     using SpecialFunctions, Interpolations
 end
 
+cd(raw"C:\Users\marcu\OneDrive\Desktop\PraktikumIII\e+e-_Annihilation")
+
 ## Loading data
 begin
     path = "data\\3.4\\3.4.2\\3.4.2.txt"; # data is stored in 3.3.2 -> this was the acquisition
@@ -83,11 +85,11 @@ begin
     c_confidence = clrs[2]
     α = 0.5
     plot(x, y, fillrange = u, fillalpha = α, c = c_confidence, label = "Confidence band (2σ)", seriestype=:step,
-    xlims=(0,400), xticks= (0:100:500, [string(round(adc_to_energy(i), digits=2)) for i in 0:100:500]),
-    xlabel="Energy (keV)", linewidth=0,
-    title="MCA coincidence spectrum - Calibrated", ylabel="Detected counts",
-    size=(700,500), dpi=700, titlefontsize=11, xguidefontsize=10, yguidefontsize=10,
-    margin = 5mm
+        xlims=(0,400), xticks= (0:100:500, [string(round(adc_to_energy(i), digits=0)) for i in 0:100:500]),
+        xlabel="Energy (keV)", linewidth=0,
+        title="MCA coincidence spectrum - Calibrated", ylabel="Detected counts",
+        size=(700,500), dpi=700, titlefontsize=11, xguidefontsize=10, yguidefontsize=10,
+        margin = 5mm
     )
     plot!(x, y, fillrange = l, st=:step, fillalpha = α, c = c_confidence, label = :none, linewidth=0)
     plot!(x, y, color=clrs[1], st=:step, legend=:topleft, label="Fitted line", linewidth=0.7)

@@ -1,5 +1,5 @@
 ## Marcus Mähring 2021
-
+# Edited 2022 for revision of report.
 #=
 This program fits the gaussian peaks and compton edges which appear in the MCA
 recorded energy spectrum. The idea is to
@@ -30,6 +30,8 @@ begin
     # additional utilities
     using SpecialFunctions, Interpolations, Combinatorics
 end
+cd(raw"C:\Users\marcu\OneDrive\Desktop\PraktikumIII\e+e-_Annihilation")
+
 
 ## Helper functions
 function χ²_calc(fit_function, x, y, σ, dependent_vars = 3)
@@ -133,9 +135,9 @@ end
 ## Defining the models
 
 gaussian_f(x,p) = @.p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) )
-gaussian_quad_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4] + p[5]*x + p[6]*x^2;
-gaussian_lin_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4] + p[5]*x;
-gaussian_const_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4];
+gaussian_quad_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4] + p[5]*x + p[6]*x^2
+gaussian_lin_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4] + p[5]*x
+gaussian_const_noise_f(x,p) = @. p[1] * exp( -(x - p[2])^2 / ( 2*p[3]^2) ) + p[4]
 
 errorfunc_normal_gauss_const_noise_f(x,p) = @. p[1]*erf(x)+ p[2];
 errorfunc_arb_gauss_const_noise_f(x,p) = @. p[1] * erf( (x-p[2]) / (sqrt(2)*p[3]) ) + p[4];
@@ -172,10 +174,11 @@ begin
     annotate!(780, 2.5e3, text("1275 keV peak",  colors[8], fontsize))
     # savefig("plots\\3.3.2_MCA_Spectrum_NoCoinc_Annotated_Mod_LeftPeaksUnmarked.pdf")
 end
+
 ## 1275 peak   # Frequentist  -> there is very little noise here -> no background fit
 
 p0 = [2250.0, 780.0, 20.0]
-p0_const = [2250.0, 780.0, 20.0, 100.0]
+p0_const = [2000.0, 700.0, 20.0, 100.0]
 
 Peak1275_data = spectrum_data[725:825, :];
 Peak1275_x_data = Peak1275_data[!, :Channel]
@@ -184,15 +187,17 @@ Peak1275_σ_data = Peak1275_data[!, :Error]
 
 Peak1275_fit = curve_fit(gaussian_f, Peak1275_x_data, Peak1275_y_data, 1 ./Peak1275_σ_data.^2 ,p0)
 Peak1275_const_fit = curve_fit(gaussian_const_noise_f, Peak1275_x_data, Peak1275_y_data, 1 ./Peak1275_σ_data.^2, p0_const)
+
 Peak1275_f(x) = gaussian_f(x , Peak1275_fit.param)
 Peak1275_const_f(x) = gaussian_const_noise_f(x, Peak1275_const_fit.param)
-Peak1275_no_noise_chisqndof = χ²_calc(Peak1275_f, Peak1275_x_data, Peak1275_y_data, Peak1275_y_data, length(p0))[end]
-Peak1275_const_noise_chisqndof = χ²_calc(Peak1275_const_f, Peak1275_x_data, Peak1275_y_data, Peak1275_y_data, length(p0))[end]
+
+Peak1275_no_noise_chisqndof = χ²_calc(Peak1275_f, Peak1275_x_data, Peak1275_y_data, Peak1275_σ_data, length(p0))[end]
+Peak1275_const_noise_chisqndof = χ²_calc(Peak1275_const_f, Peak1275_x_data, Peak1275_y_data, Peak1275_σ_data, length(p0))[end]
 
 values_1275 = Peak1275_fit.param
 sigma1275 = stderror(Peak1275_fit) # cov_mat1275 = estimate_covar(Peak1275_fit)
 
-values_const_1275 = Peak1275_const_fit.param;
+values_const_1275 = Peak1275_const_fit.param
 sigma_const_1275 = stderror(Peak1275_const_fit);
 
 begin
@@ -549,8 +554,17 @@ Calibfit = begin
                     w,
                     initial
     )
+    calibration_fit_3points = curve_fit(linear_model,
+                    Measurements.value.(energies[1:3]), Measurements.value.(ADC_vals[1:3]),
+                    w[1:3],
+                    initial
+    )
     coeffs = calibration_fit.param .± stderror(calibration_fit)
+    coeffs3points = calibration_fit_3points.param .± stderror(calibration_fit_3points)
+
     calibration_f(x) = linear_model(x, calibration_fit.param)
+    calibration_f3points(x) = linear_model(x, calibration_fit_3points.param)
+
     scatter(energies, ADC_vals, ylabel="ADC",
         title="Energy ADC conversion", titlefontsize=10,
         legend=:topleft, label="Data ± σ", dpi=750, xguidefontsize = 9, yguidefontsize = 9,
@@ -560,31 +574,73 @@ Calibfit = begin
         Measurements.value.(ADC_vals), Measurements.uncertainty.(ADC_vals),
         2
     )
-    plot!(200:50:1325, calibration_f, label="Fit, χ² = $( round( χ²_calc(calibration_f, energies, Measurements.value.(ADC_vals), Measurements.uncertainty.(ADC_vals), 2)[2], digits=2))")
-    annotate!(850, 225,
-              text("ADC = $(round(coeffs[2],digits=4)) ⋅ Energy - $(round(-1*coeffs[1], digits=2))", 9)
+    @info χ²_calc(calibration_f3points, energies[1:3],
+        Measurements.value.(ADC_vals[1:3]), Measurements.uncertainty.(ADC_vals[1:3]),
+        1
     )
+    plot!(200:50:1325, calibration_f, label="Fit, all points. χ² = $( round( χ²_calc(calibration_f, energies, Measurements.value.(ADC_vals), Measurements.uncertainty.(ADC_vals), 2)[2], digits=2))")
+    plot!(200:50:1325, calibration_f3points, label="Fit, three first points. χ² = $( round( χ²_calc(calibration_f3points, energies[1:3], Measurements.value.(ADC_vals[1:3]), Measurements.uncertainty.(ADC_vals[1:3]), 2)[2], digits=2))")
+    annotate!(850, 175,
+              text("For all the points: ADC = $(round(coeffs[2],digits=4)) ⋅ Energy - $(round(-1*coeffs[1], digits=2))", 8))
+
+    annotate!(850, 100,
+              text("For the first three: ADC = $(round(coeffs3points[2],digits=4)) ⋅ Energy - $(round(-1*coeffs3points[1], digits=2))", 8))
+
     # savefig("plots\\3.3.1_energy_new_errors.pdf")
 end
 
 begin
     residual_plot = plot(energies, (ADC_vals .- calibration_f.(energies)),
         seriestype=:scatter,
-        label = "Residuals",
-        xticks=350:100:1300,
+        label = "All",
+        xticks=350:250:1300,
         xlabel="Energies (keV)",
         ylabel = "Fit residuals", xguidefontsize = 9, yguidefontsize = 9,
-        legend = :topleft,
-        legendfontsize=7
+        legend = :topright,
+        legendfontsize=5
     )
     plot!((x->0), [350, 1300], linestyle = :dash, label=:none, linecolor=:red)
+
+    residual_plot3 = plot(energies[1:3], (ADC_vals[1:3] .- calibration_f3points.(energies[1:3])),
+        seriestype=:scatter,
+        label = "First 3",
+        xticks=350:250:1300,
+        xlabel="Energies (keV)",
+        ylabel = "Fit residuals", xguidefontsize = 9, yguidefontsize = 9,
+        legend = :topright,
+        legendfontsize=5
+    )
+    plot!((x->0), 350:250:1300, linestyle = :dash, label=:none, linecolor=:red)
+
 end
 
 begin
-    l = @layout [a{0.6h};
-    b{0.4h}]
-    plot(Calibfit, residual_plot, layout = l)
+    l = @layout [a{0.6h}; b c]
+    plot(Calibfit, residual_plot, residual_plot3, layout = l)
     # savefig("plots\\3.3.3_energy_fit_w_residuals.pdf")
+end
+
+pull_plot = begin
+    pulls = (ADC_vals .- calibration_f.(energies)) ./ Measurements.uncertainty.(ADC_vals)
+    pull_plot = plot(energies, pulls,
+        seriestype = :scatter,
+        label = "Pulls", dpi=750,
+        xlabel = "Energy [keV]", xguidefontsize = 9, yguidefontsize = 9,
+        ylabel = "Pulls",
+        legend = :top,
+    )
+    actual_mean_array = zeros(length(pulls)) .+ mean(pulls)
+    # plot!(1:1:10, Measurements.value.(actual_mean_array), label = "Actual Average")
+    plot!(energies, Measurements.value.(actual_mean_array), ribbon = zeros(4) .+ Measurements.uncertainty.(mean(pulls)) ,
+        fillalpha = 0.25, c = 1, lw = 2,
+        label = "Pull Average w. Error",
+        linecolor = :red, legend=:topright,
+        fillcolor = :red,
+        legendfontsize = 6
+    )
+    plot!(energies, zeros(4), ribbon = ones(4) , fillalpha = 0.25, c = 1, lw = 2,
+          label = "1σ around 0"
+    )
 end
 
 pull_plot = begin
@@ -622,8 +678,8 @@ hist_plt = begin
     plot!(fitted_distribution, label="Fitted gaussian", legend=:topleft)
 end
 begin
-    l_pull = @layout[a{0.75h}; b]
-    plot(pull_plot, hist_plt, layout = l_pull)
+    l_pull = @layout[a{0.75h} b{0.75h}; c d]
+    plot(pull_plot, , hist_plt, layout = l_pull)
     # savefig("plots\\3.3.3_energy_fit_pull_plot.pdf")
 end
 ## fit quality
@@ -650,10 +706,16 @@ prob_r_runs(ADC_vals, calibration_f(energies))
 
 ## interlude on energy resolution
 energy_to_adc(x) = calibration_f(x)
+energy_to_adc3(x) = calibration_f3points(x)
 adc_to_energy(x) = (x - calibration_fit.param[1]) / calibration_fit.param[2]
+adc_to_energy3(x) = (x - calibration_fit_3points.param[1]) / calibration_fit_3points.param[2]
+
 
 FWHM511 = adc_to_energy.(Peak511_quad_P)[BitArray([0,1,1,0,0,0])]
+FWHM511_3 = adc_to_energy3.(Peak511_quad_P)[BitArray([0,1,1,0,0,0])]
 RFWHM511 = 2.35 * FWHM511[2] / FWHM511[1]
+RFWHM511_3 = 2.35 * FWHM511_3[2] / FWHM511_3[1]
+
 RFWHM511_perc = 2.35 * FWHM511[2] / FWHM511[1] * 100
 
 FWHM1275 = adc_to_energy.((Peak1275_const_fit.param .± stderror(Peak1275_const_fit))[BitArray([0,1,1,0])])
@@ -688,7 +750,7 @@ begin
     annotate!(46, 15000, text("σ = $(round(adc_to_energy(pL[3]), digits=2))", 10, :darkblue))
     annotate!(37.5, 14000, text("μ = $(round(adc_to_energy(pQ[2]), digits=2))", 10, :darkgreen))
     annotate!(46, 14000, text("σ = $(round(adc_to_energy(pQ[3]), digits=2))", 10, :darkgreen))
-    plot!(xticks = (20:10:50, [string(round(adc_to_energy(i), digits=2)) for i in 20:10:52]))
+    plot!(xticks = (20:10:50, [string(round(adc_to_energy(i), digits=0)) for i in 20:10:52]))
     # savefig("plots\\3.3.3_low_keV_Peak.pdf")
 end
 
@@ -698,12 +760,15 @@ end
 begin
     p_compton_continuum_511 = plot(spectrum_data[!, :Channel], spectrum_data[!, :Count],
         seriestype=:step, label="Recorded data",
-        xlims=(0, 250),
+        xlims=(0, 350),
         xticks=(0:50:400, [string(round(adc_to_energy(i), digits=2)) for i in 0:50:42]),
         xlabel="Energy (keV)", xguidefontsize=9, yguidefontsize=9, titlefontsize=10,
-        ylabel="Counts", lw=1.75, margin=3mm, dpi=750,
+        ylabel="Counts", lw=1.75, margin=3mm, dpi=750, legend=:bottomright,
         title="Compton continuum and edge of 511keV"
     )
+    plot!(xticks = (0:50:400, [string(round(adc_to_energy(i), digits=0)) for i in 0:50:400]))
+    vline!([energy_to_adc(170)], label="170keV")
+    vline!([energy_to_adc(63)], label="63keV")
     poisson_coinfidence_band(spectrum_data[!, :Channel], spectrum_data[!, :Count], α=0.5, σC = 2)
-    savefig("plots\\3.3.3calibrated_511_Compton_continuum.pdf")
+    # savefig("plots\\3.3.3calibrated_511_Compton_continuum.pdf")
 end

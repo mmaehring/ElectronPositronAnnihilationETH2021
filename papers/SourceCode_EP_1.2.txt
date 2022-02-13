@@ -1,0 +1,719 @@
+
+\documentclass[12pt, a4paper, oneside, notitlepage]{article}
+\usepackage{a4wide}
+\usepackage{graphicx} %Allows for including graphics
+\usepackage{epsfig}
+\usepackage{parskip}
+\usepackage[utf8]{inputenc} %Changed encoding to allow for German characters
+\usepackage{bm}
+\usepackage[free-standing-units=true, separate-uncertainty=true, per-mode = symbol]{siunitx} % for consistent handling of SI units
+\usepackage{hyperref}
+\usepackage{pgfplots}
+\usepackage{wrapfig}
+\usepackage{subcaption} % subfigures
+\pgfplotsset{compat=1.17}
+\usepackage{float} %Allows for more precise control of image locations
+\usepackage{amsmath} %More math formatting tools
+\usepackage{amssymb} %More math symbols
+\usepackage{enumitem} %Allows fancy enumeration
+\usepackage{geometry} % Margin and orientation of the document
+\geometry{a4paper, portrait, margin=2.15cm}
+\renewcommand{\baselinestretch}{1.25} %Choose spacing in the document
+\usepackage{fancyhdr} %Allows for editing of the header  https://www.iitg.ac.in/stud/j.rakesh/data/uploads/header.pdf
+\usepackage{mathtools} %Short intertext align
+\usepackage{setspace}
+\usepackage[font=small,skip=0pt]{caption} % reduce distance between image and caption
+\setlength{\parindent}{0pt}
+\usepackage[version=4]{mhchem}   % allows for chemical formulas
+\usepackage{tikz} % -> add rudimentary drawings and diagrams
+\usepackage{listings} % -> add blocks of code
+
+\newcommand{\m}[1]
+{\mathrm{#1}}
+\DeclareMathOperator\erf{erf}
+
+\title{Electron Positron Annihilation}
+\author{Mähring, Marcus}
+\date{December 23, 2021}
+
+\begin{document}
+
+\maketitle
+
+% -------------------------------------------------------------------------------------------------------------------------------
+
+\begin{abstract}
+In this experiment, the $\beta^+$ decay of a $\ce{^22Na}$ sample is examined using a Nuclear Instrument Module crate along with some basic modules for the casing. These were used to investigate the characteristics of the detector ($\ce{NaI(Ti)}$ scintillator) and amplifier (photomultiplier - PMT) by determining the rise time together with the decay time of the scintillator. From this point, the saturation point of the PMT was determined to be about $\SI{910}{\volt}$ and the working point about $\SI{850}{\volt}$. After this, the energy spectrum of the decay was recorded using a SCA and then a MCA card both with and without coincidence. The authors could then identify all components of the decay scheme in the spectra and find which effects appear in coincidence with one another. The Compton edges and photopeaks from theory were all identified and fitted from which an energy calibration could be extracted using theoretical energies of the features. From this, the detector was determined to be linear but with an odd outlier at about $\SI{850}{\kilo\electronvolt}$, leading the author to believe the fits may need to be further investigated in the region concerned. Finally, the structure in the spectra unidentified in the theory was found to correspond to remnants of electron capture in the sample and backscattering close to the Compton edge respectively.
+
+\end{abstract}
+
+% -----------------------------------------------------------------------------------------------------------
+\newpage
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------------------------------------
+
+\section{Introduction}
+\label{sec:introduction}
+\subsection{Goals of the experiment}
+This experiment aims to introduce the author to some methods and tools used in some nuclear physics research as well as investigate the ($\beta^+$-)decay of a $\ce{^22Na}$ sample. Positron decay has become more and more important being both used in medicine (Positron Emission Tomography - PET) and being a fundamental interaction in quantum electrodynamics. 
+
+\subsection{The annihilation process}
+The simplified process is as follows: emitted positron quickly scatters in the medium, inducing an annihilation between the positron and the electron.
+\begin{equation*}
+    \ce{^22Na -> ^22Ne^* + e^+ + \nu_e}    
+\end{equation*}
+Where $\ce{^22Ne^*}$ is an excited state of neon, which falls back to its ground state, producing a photon with energy $\SI{1.275}{\mega\electronvolt}$. In actuality, a short lived bound state called \textit{positronium}, which in turn decays into $2\gamma$ or $3\gamma$ \cite{manual}. The above process describes the positron decay, but additionally about $10\%$ of the decay is due to electron capture, a process where an electron from the shell (mostly the K shell, but sometimes the L shell with a lower probability) fuses with a proton in the nucleus expelling a neutron and a neutrino \cite{leo2012techniques}:
+\begin{equation*}
+    \ce{e^- + p -> n + \nu}
+\end{equation*}
+This transition is almost impossible to detect directly due to neutrinos being difficult to detect \cite{griffiths2020introduction}. However, the electron capture leaves a hole in the shell which gets filled by another electron, giving rise to an emission of a x-ray \cite{leo2012techniques}.
+
+The decay of the positronium is determined by considering the spin state of the electron-positron pair. We label them \textit{ortho-positronium}, o-Ps -- a triplet spin state with parallel spins -- and \textit{para-positronium}: p-Ps, singlet state with anti-parallel spins. They obey the following decays to conserve the total spin:
+\begin{align*}
+    &\ce{p-Ps -> \gamma\gamma}  \\
+    &\ce{o-Ps -> \gamma\gamma\gamma}
+\end{align*}
+If one considers the momentum conservation in these decays it follows immediately, that the p-Ps decay must happen so that the two photon's momenta have equal magnitude but are opposite. Analogously, from energy conservation it holds that each photon has energy equal to the electron rest mass: $\sim\SI{511}{\kilo e \volt}$. The o-Ps state has a multipole configuration, providing additional stability, where o-Ps has a lifetime of $\SI{1.42e-7}{\second}$ in vacuum, significantly longer than p-Ps at $\SI{1.25e-10}{\second}$ \cite{manual}. In practice, this experiment will only focus on the p-Ps decay as o-Ps decay occurs much less frequently. 
+
+\subsection{Photon-matter interaction}
+Photons interact with matter distinctly different to charged particles, as they slow down through a gradual process interactions with the material. There are three main kinds of interactions: \textit{photoelectric absorption}, \textit{Compton scattering}, and \textit{pair production} \cite{manual}\cite{kittel2013einfuhrung}. 
+
+Photoelectric absorption describes the interaction of a photon with an atomic electron, leading to the absorption of the photon and the excitation of the atom. Let $E_\gamma$ be the energy of the photon, then the electron gets the kinetic energy:
+\begin{equation*}
+    E_e = E_\gamma - E_b
+\end{equation*}
+Where $E_b$ is the binding energy of the ejected electron. This can only happen with bound electrons, as such an interaction with a free electron would violate the conservation of momentum.
+
+Compton scattering describes the scattering of photons on electrons, leading to an energy transfer to the electron and a deflection mirrored from its initial approach. The electron gains the energy:
+\begin{equation*}
+    E_e = E_\gamma - E'_\gamma
+\end{equation*}
+with $E'_\gamma$ being the energy of the reflected atom. It can be shown that this quantity obeys the relation:
+\begin{equation*}
+    E'_\gamma = \frac{E_\gamma}{1+\frac{E_\gamma}{m_ec^2}(1-\cos{\theta})} = E_\gamma \cdot P(E_\gamma, \theta)
+\end{equation*}
+Here $P(E_\gamma, \theta)$ describes the ratio of photon energy before and after the scattering. The rest mass of the electron, $m_ec^2 \approx \SI{511}{\kilo\electronvolt}$ will reappear throughout this report. As incident angle of the photon is arbitrary, $\theta$ varies from 0 to $\pi$ radians. When $\theta$ goes to zero, no energy is transferred. 
+
+The amount of photons observed at the different scattering angles, and corresponding electron energies is given by the Klein-Nishina scattering formula which follows from quantum electrodynamics \cite{leo2012techniques}:
+\begin{equation}
+    \frac{d\sigma}{d\Omega} = \frac{1}{2}\alpha^2 r_c^2 P(E_\gamma, \theta)^2 \left[P(E_\gamma, \theta) + P(E_\gamma, \theta)^{-1} - \sin^2{\theta}\right]
+    \label{eq:KleinNishina}
+\end{equation}
+Here $\alpha$ is the fine structure constant and $r_c = \hbar / m_e c$ the reduced Compton wave-length \cite{leo2012techniques}. 
+
+In our case, $E_\gamma$ is equal to the rest mass of the electron, $m_e c^2$. Additionally at $\theta = \pi$ backscattering is going to take place, we get an energy of $E'_\gamma = \frac{E_\gamma}{3}=\SI{170}{\kilo\electronvolt}$. At this point we also find the Compton edge, the point where the most photons are scattered, before the amount of scattered photons quickly drops (see \eqref{eq:KleinNishina}). Here the maximum energy acquired by the electron is $E_e = \frac{2}{3}E_\gamma = \SI{340}{\kilo\electronvolt}$ \cite{manual}. Note that one may substitute $E_\gamma$ for any arbitrary emission one wishes to study. 
+% This other theoretical position of the Compton edge can alternatively be derived using the Klein-Nishina formula:
+% \begin{equation}
+%     T_\text{Max} = E_\gamma \frac{2\kappa}{1 + \kappa} \qquad \text{with} \qquad \kappa = \frac{E_\gamma}{m_e c^2}
+% \end{equation}
+% with $T$ the kinetic energy of the electron. 
+
+
+The pair production mechanism describes the creation of an electron, positron pair from a photon, with energy $\geq 2m_e c^2 = \SI{1.022}{\mega\electronvolt}$, though this mechanism is negligible for energies smaller than several $\SI{}{\mega\electronvolt}$. \cite{manual}.
+
+\subsection{Detecting the decay}
+Ultimately, the importance of the different mechanisms is determined by the scattering cross section of the electrons with the material in the scintillator used. The scintillator converts (most of the) the incoming $\gamma$ rays into current which is then detected. The efficiency of the kind of scintillator used in the experiment ($\ce{NaI(Ti)}$) is given in figure \ref{fig:NaTi_efficieny}. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=0.85]{Graphics/Theory/WR_Leo_mu_for_scintillators.jpg}
+    \caption{The attenuation coefficient plots of a $\ce{NaI(Ti)}$ scintillator as well as a typical plastic scintillator. Additionally, the contributions from the individual effects are marked in the respective regions where applicable \cite{leo2012techniques}.}
+    \label{fig:NaTi_efficieny}
+\end{figure}
+
+In our experiment, both the photoelectric and Compton effects have a significant cross section and as such we expect both to appear during the course of the experiment \cite{manual}. An example of this spectrum is shown in figure \ref{fig:theo_spectrum}.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[scale=0.65]{Graphics/Theory/Expected_Structure.jpg}
+    \caption{Theoretical energy spectra for the main effects in the experiment: the compton edge and photopeak. In the above two parts, the structure of these features are shown individually and then lower part shown together \cite{manual}.}
+    \label{fig:theo_spectrum}
+\end{figure}
+
+In practice, the sharp peaks and transitions seen in figure \ref{fig:theo_spectrum} are emblematic of a detector with a perfect to very high energy resolution. The detector used in this experiment, a $\ce{NaTi}$ scintillator, has a lower resolution and will thusly induce smearing in the peaks and edges. Specifically, the energy resolution -- which shall be determined during the experiment -- can be approximated by determining the Full Width Half Maximum (FWHM) of its peaks:
+\begin{equation}
+    R_\text{FWHM} = \frac{\Delta E}{E} \overset{\text{Gaussian}}{=} \frac{2.35 \sigma}{E} 
+    \label{eq:energy_resolution}
+\end{equation}
+Meaning if a Gaussian is fit to a peak in the spectrum, the quotient of the found standard deviation with its mean (if normalized) provides a value proportional to the energy resolution \cite{lyons1989statistics}\cite{barlow1993statistics}. 
+
+As mentioned above, the experiment employs the use of $\ce{NaI(Ti)}$ scintillators, which are preferential over for instance $\text{NE102A}$ as it has a significantly higher detection rate in domains where photoelectric effects as well as pair production dominate. Especially the photoelectric effect is essential in $\gamma$-measurements, as it produces the characteristic photopeak, making the $\ce{NaI(Ti)}$ scintillator the clear choice. 
+
+% ------------------------------------------------------------------------------------
+\clearpage
+\section{Experiment}
+\label{sec:experiment}
+\subsection{Equipment}
+\subsubsection{The NIM crate}
+In this experiment a Nuclear Instrumentation Module (NIM) crate is used. This is a housing in which several digital/analogue signal processing modules may be installed. It is usually characterized by being an exceptional grounding. It usually allows for both digital and analogue signals, where digital signals usually assign the logical false to $\SI{0}{\volt}$ and the logical true to a positive voltage, conventionally $\SI{700}{\milli\volt}$. Some modules used in this experiment are the following. 
+
+High voltage source (HV) to produce the high voltages needed in the photomultipliers, which are responsible for amplification of the signal. 
+
+Two custom built photomultipliers (PMTs) were used in the experiment. They work by taking the photo-electrons produced from the scintillator photons and from the initial electron creating a cascade of subsequent electrons, amplifying the signal (see figure \ref{fig:scintillator_and_PMT}). They allow for the output of an analogue signal (entire collected signal) with positive polarity which undergoes some pre-processing as well as the dynode which has no pre-processing with a low rise time. 
+\begin{figure}[hb]
+    \centering
+    \includegraphics[scale=0.6]{Graphics/Theory/Scintillator+PMT.png}
+    \vspace{0.2cm}
+    \caption{A schematic describing the use of a scintillator together with a PMT. Firstly a photon or charged particle enters the scintillator and is subsequently transformed into low energy photons through interaction with the scintillator material. These are in turn converted into primary electrons using a photocathode which are then fed to the PMT amplifying the signal \cite{DonegaMauro2021_DataAnalysisToolboxFS21}.}
+    \label{fig:scintillator_and_PMT}
+\end{figure}
+
+Fan in fan out is a simple module which copies the incoming pulse (in the experiment, a liner one is used, meaning it accepts both analogue and digital signals) into several identical pulses. 
+
+A discriminator is a unit which takes an input signal and only outputs a digital signal if the amplitude of the input exceeds a certain value. The threshold of the input and the width of the signal can be adjusted mechanically on the discriminator which also includes an output such that the threshold can be read using a multimeter.
+
+The dual timer delay trigger (D.TRIG) is a unit working with digital signals both as input and output. It has two independent time parameters, delay and width. The width specifies the width of the output signal while the delay determines the delay from a received signal to the output of the new signal. I only takes NIM signals but outputs both TTL and NIM signals. 
+
+Single channel analyzer (SAC) is a disciminator which compares the input signal with an upper as well as a lower bound. It takes an analogue signal and outputs a logical (digital) true if the analogue signal falls within the set range. In this experiment it is used with a scalar, which counts the amount of received signals within a set time frame.
+
+The coincidence unit determines if two signals are coincident in time and generates a logical signal if this is true. The signal is of a constant width and can be set manually. 
+
+
+Additionally, an oscilloscope to image the produced signals was used. During the entire experiment the signal was always terminated at the scope with a total resistance of $\SI{50}{\ohm}$. Mostly this comes from an explicit termination with a resistor but sometimes the resistance is implicitly included in the output from the NIM crate. This is done to decrease the amplitude of the observed signal, and to ensure that the signals are in the allowed range for the equipment. 
+
+\subsubsection{The source}
+The source used is a $\ce{^22Na}$ source acquired in April 2009. In appendix \ref{appendix:activity} the present activity is determined to be $\SI{13.21 \pm 0.18}{\kilo\becquerel}$. Additionally, safety considerations are discussed. However, it is still of great interest to determine the expected count rate of the detector, of which the setup can be seen in figure \ref{fig:NaSource}. 
+\begin{figure}[hb!]
+    \centering
+    \includegraphics[scale=0.5]{Graphics/Theory/NaSource.png}
+    \caption{A sliced view of the $\ce{^22 Na}$ source together with some essential dimensions of the setup. Note the shielding and how the detectors are mounted such that they do not break this seal considerably \cite{manual}.}
+    \label{fig:NaSource}
+\end{figure}
+The area of a detector width a diameter of $\SI{2.54}{\centi\meter}$ has the area $A_\text{Source} = \pi (d/2)^2$ with $d$ the diameter of the detector, $d = \SI{25.4}{\milli\meter}$. We assume the decay of the sample is isotropic and the detector is at a distance of $r = \SI{5}{\centi\meter}$ from the detector. Meaning we get the following average detected activity:
+\begin{equation}
+    \Bar{N}_\text{Detected} = \frac{\pi \cdot (d/2)^2}{4 \pi r^2} N = \frac{d^2}{16 r^2}N = \SI{213.0\pm2.8}{\becquerel}
+    \label{eq:expected_detection_rate}
+\end{equation}
+Over the $\SI{10}{\second}$ measuring time we subsequently expect about $\SI{2130 \pm 28}{}$ events, assuming perfect detection efficiency. 
+
+If one assume the particle travel a distance of $\SI{25.4}{\milli\meter}$ in the scintillator, and the average photon has an energy of $\SI{511}{\kilo\electronvolt}$ from figure \ref{fig:NaTi_efficieny} one gets a linear attenuation of about $\SI{0.3}{\centi\meter^{-1}}$. Using Beer-Lambert's law (appendix \ref{appendix:attenuation}) one subsequently should expect about $\SI{995}{\becquerel}$ counts over a ten second interval. 
+
+\subsection{Initial observations, detector fluorescence, and saturation}
+\subsubsection{Initial observations and detector fluorescence}
+Before starting the experiment, the high voltage cables needed to be connected to the PMT. This was done by first connecting a high-voltage cable to the HV source and then to a 1/1000 voltage divider. This was in turn wired to an Ohm-meter, where voltage was shwon in volts, but due to the voltage divider it corresponded to the displayed value in kilo volts. Then a HV cable was wired from the output of the divider to the PMT.  
+
+For the initial observation of the signal, first the voltage was set to $\SI{800}{\volt}$. 
+Then, the anode output was connected to the oscilloscope (scope) and terminated with $\SI{50}{\milli\ohm}$. The time resolution was set to $\SI{250}{\nano\second}$ and the scale of the voltage was set to $\SI{500}{\milli\volt}$ triggering at a $\SI{50}{\milli\volt}$ threshold with $\SI{5}{\second}$ persistence on the scope. From this point out, the signal could be imaged on the screen. 
+
+The above steps were repeated for the dynode signal with a time resolution of $\SI{100}{\nano\second}$ and voltage resolution of $\SI{100}{\milli\volt}$. From this signal the fluorescence time of the $\ce{NaI(Ti)}$ shall be determined in a later stage. 
+
+\subsubsection{Saturation}
+In this step, the valid range of the PMT to avoid saturation was found. The voltage at which saturation occurs, is where the maximal amount of photo-electrons are produced. Meaning for any voltage above this value, several photon energies will be percieved as the same energy by the 
+experiment, as the signal post PMT will look identical. For our PMT, which is custom-designed at ETH, an indication of saturation is when above the normal anode signal additional structure in the form of additional lines and or bumps on the graph appear. As such several stills were made at different voltages ranging from $\SI{1200}{\volt}$ and $\SI{900}{\volt}$.
+
+From the recorded stills from the oscilloscope the point of saturation was determined to be about $\SI{910}{\volt}$, meaning the experiment should be performed below this voltage. 
+
+\subsection{Determining the working point for the PMT}
+Another note when working with the PMT is that one needs to find the high voltage range where the gain (amplification of the signal) is significant, letting as much of the signal in as possible, while not reaching a region where noise from the electronics add counts. We thus expect a rising region where not enough of the signal is let through, a plateau region where the counts are relatively stable, and finally a region where noise starts to add to the counts. We wish to determine the voltages which specify the plateau region. 
+
+To this end a simple circuit was constructed, outputing the dynode from the PMT leading to a fan-in fan-out module to split the signal. One output therefrom was directly connected to the scope, while another output was connected to the discriminator with a threshold of $\SI{50}{\milli\volt}$. From the discriminator -- outputting a TTL signal -- one output was wired to the trigger of the oscilloscope and another to the D.TRIG module. 
+
+The D.TRIG module is here to ensure that one signal does not get counted several times, as this would artificially inflate the counts, leading to a systematic error. To this end, the D.TRIG is used to produce a longer output which was then tuned to ensure that per discriminator-processed dynode signal, only one gets counted. The delay was set to $\SI{1}{\micro\second}$. Thereafter, a scalar was connected to the D.TRIG output. This entire setup can be seen in figure \ref{fig:3.2_Wiring}. 
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.65\linewidth]{Graphics/Setup/3.2.png}
+    \caption{The circuit configuration for determining the working point of the PMT. Note how every signal is a dynode signal except the logical output from the D.TRIG signifying if a count should be recorded. \cite{manual}}
+    \label{fig:3.2_Wiring}
+\end{figure}
+
+The voltage range from 0 to 1200 was swept in increments of about $\SI{50}{\volt}$, but in some parts of the range were the count difference was low, a step size of $\SI{100}{\volt}$ was sometimes employed. Likewise, in areas of interest the step size used was $\SI{25}{\volt}$. A voltage of $\SI{850}{\volt}$ was decided upon from the results of the measurement.
+
+\subsection{Integrated spectrum with a SCA and a scalar}
+In this step the energy spectrum of the ejected $\gamma$ radiation. In a first step, it was done by using a SCA in window ($\Delta E$) mode, to sweep a range of different voltages of the signals from the PMT; the voltages correspond to the energies of the $\gamma$-rays. In figure \ref{fig:3.3.1_Wiring} a diagram of the setup is given. On the SCA, we change the Lower Level Discriminator (LLD) in increments of $\Delta E$, meaning for every LLD value we scan the range $[\text{LLD}, \text{LLD} + \Delta E]$, giving an indication of the amount of counts in the given range. 
+
+As in figure \ref{fig:3.3.1_Wiring} the anode output of the PMT was connected to the PMT. Then from the SCA the S.C.A output was used as the trigger for the scope as well as for the scalar. Additionally, the BLR output from the scope was imaged on the scope. The aforementioned connection was not explicitly terminated at the scope, but was implicit in the module.
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Graphics/Setup/3.3.1.png}
+    \caption{Circuit configuration for the integrated spectrum using the SCA. Again a TTL signal goes to the scaler. Note that BLR output already has an integrated $\SI{50}{\ohm}$ resistor, meaning that termination is not needed.}
+    \label{fig:3.3.1_Wiring}
+\end{figure}
+
+First, a general sweep was performed with a $\Delta E = \SI{200}{\milli\volt}$ with non-equidistant LLD values in steps between $\SI{0.01}{\volt}$ and $\SI{0.5}{\volt}$ to create an intuitive understanding of the general structure of the spectrum. The counts were measured during a $\SI{10}{\second}$ time interval. The measurement was repeated using a window size of $\SI{50}{\milli\volt}$ sampling at equidistant points incrementing by the window size. Both measurements were carried out in the range from circa 0 to $\SI{2.5}{\volt}$. These measurements were carried out with $\SI{20}{\second}$ of count-time. 
+
+\subsection{Spectrum with MCA card without coincidence}
+\label{subsec:2_spectrum_w.o_coinc}
+Next, the previous measurement was repeated using an integrated Multi-Channel Analyzer (MCA) card. The MCA converts the amplitude of the incoming analogue signal into a digital signal and automatically generates a histogram of the data.
+
+To setup the measurement the analogue output was directly connected to the leftmost connection of the MCA (the input). The MCA results were displayed in corresponding MC3A software disabling the gate option for the MCA (otherwise no signals would be recorded) and a range of 4096 bins were chosen. The lower level ADC was set to $\SI{0.002}{\volt}$. The spectrum was recorded for three hours and 46 minutes. 
+
+In this way the MCA resembles the SCA but with a small bin size ($\SI{0.002}{\volt}$) and a high amount of bins (4096).
+
+\subsection{Observing decay with coincidence}
+In this final measurement, the decay of the source was observed with a secondary detector to only observe events coincident in time, meaning we should only observe the remnants from the p-Ps decay. 
+
+To this end the second scintillator vis-à-vis the first was wired to the HV with the same configuration with a voltage divider and multimeter as the first PMT and both were set to $\SI{850}{\volt}$. Then the circuit in \ref{fig:3.3.4_wiring} was setup as described below. 
+
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Graphics/Setup/3.3.4.PNG}
+    \caption{Circuit schematic for the MCA observation. The above part with just the anode signal being connected to the MCA card corresponds directly to the circuit used in section \ref{subsec:2_spectrum_w.o_coinc}. Note how the circuit also indicates the coincidence of the anode signal \cite{manual}. }
+    \label{fig:3.3.4_wiring}
+\end{figure}
+
+The circuit consists of a few distinct parts. The first most obvious connection, is that the anode needs to be connected to the MCA input, however, in a later stage we will see that we might need to impose a delay on this signal for it to match the logical signal from the rest of the circuit. 
+
+In a first stage, both dynode outputs from the PMTs were connected to a discriminator with a threshold of $\SI{50}{\milli\volt}$ each. The output NIM signals were then wired to the coincidence unit. The wiring up to this point lead to a relative delay between the two dynode outputs of $\SI{2}{\nano\second}$. The output of the scope was imaged first together with the output of one discriminator and then with the other to ensure that they were indeed generating a coincidence and that the discriminator outputs were realistic. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width = 0.55\linewidth]{Graphics/Setup/3.4.1_Coinc_1Disc.JPG}
+    \caption{An example of the coincidence and discriminator output. Note the small displacement in time which the signals carry; this is one place where the delay of the equipment and the cables leads to a difference which needs to be counteracted for the coincidence to work. }
+    \label{fig:3.4.1_Coinc_1Disc}
+\end{figure}
+
+The coincident signal was the connected to the D.TRIG, whose output will determine serve as the gate for the MCA measurement. An important factor here, as mentioned before, is that the TTL signal from the D.TRIG and the anode signal must arrive at the MCA card at the same time, otherwise only the overlap will be counted instead of the entire signal. 
+
+To ensure that this coincidence, the D.TRIG output and the anode signal were imaged on the scope. Then the delay on the anode and from the D.TRIG were adjusted until the signals were adjacent in time. It was found that no additional delay was needed for the D.TRIG, though for the anode signal, to ensure the signal lay well within the logical signal a total delay beyond that from the necessary cables of $\SI{72}{\nano\second}$\footnote{$\SI{66}{\nano\second}$ came from a delay unit and an additional $\SI{6}{\nano\second}$ from external wires} were applied to the anode signal. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width = 0.55\linewidth]{Graphics/Setup/3.4.1_DTRIG+Signal.JPG}
+    \caption{The anode signal overlaid on top of the D.TRIG output. Note how they are coincident in time even though the D.TRIG signal has had a much greater delay applied to it. This is thanks to the delay applied to the anode signal. }
+    \label{fig:3.4.1_DTRIG+Signal}
+\end{figure}
+
+Before recording the final spectrum with coincidence, the count rate was once again measured with the scalar both with the logical signal limiting the counting to coincidence, and again switching both PMT signals in the coincidence unit; this was done one PMT at the time. 
+
+
+% -----------------------------------------------------------------------------------------------
+\clearpage
+\section{Results}
+\label{sec:results}
+\subsection{Initial observations}
+In figure \ref{fig:3.1_InitialObservations} the initial observations on the oscilloscope for a voltage of $\SI{800}{\volt}$ are displayed. On the left the anode is shown and on the right the dynode. Note the stronger drawn line at lower amplitudes in both images indicating the most recent signal. 
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.1/3.1_InitialObservations.png}
+    \caption{The initial observations with the oscilloscope of the two signal types. On the left the anode is displayed and the dynode on the right. In the dynode signal, some parts are obscured as the author had not yet learned how to correctly use the scope.}
+    \label{fig:3.1_InitialObservations}
+\end{figure}
+
+\subsection{Saturation}
+In image \ref{fig:3.1_900V_975V_Saturation} the anode signals for $\SI{900}{\volt}$ and $\SI{975}{\volt}$ imaged at $\SI{5}{\second}$ and infinite persistence (in actuality, the infinite imaging was  close to $\SI{5}{\second}$ as well). Note additional bulging of the curve on the right as well as the additional streaks above the normal curve. This indicates saturation and especially the bulging becomes a valuable source of information as the streaking only appears for some higher voltages. 
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Graphics/3.1/3.1_Saturation/3.1_Saturation_900V_975V.png}
+    \caption{Two examples of anode curves. On the right ($\SI{900}{\volt}$ bias) little saturation is observed with the curve keeping its shape while on the right ($\SI{975}{\volt}$) heavy saturation occurs with an additional bulge and tearing of the curve.}
+    \label{fig:3.1_900V_975V_Saturation}
+\end{figure}
+
+With this in mind, the voltages especially around $\SI{900}{\volt}$ were sampled. Subsequently it was found that while the signals at $\SI{900}{\volt}$ exhibited no clear bulging, at $\SI{905}{\volt}$ it started to appear and at $\SI{910}{\volt}$ it became noticeable. One image taken at this voltage can be seen in figure \ref{fig:3.1_910V_Saturation} with some noticeable bulging overlaying the right part of the curve (in relation to the middle). 
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Graphics/3.1/3.1_Saturation/3.1_Saturation_910V.JPG}
+    \caption{The cutoff point from which saturation started to become noticeable. Observe how in the two boxes right from the middle, additional bulging can be seen. }
+    \label{fig:3.1_910V_Saturation}
+\end{figure}
+
+\subsection{Working point of the PMT}
+In figure \ref{fig:3.2Working_Point_PMT} a graph of a subset of interesting points from measuring the count rates for different voltages is displayed. From the consideration that the curve should be as flat as possible, the working point of $\SI{850}{\volt}$ was chosen as it was the inflection point of the graph.
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Graphics/3.2/working_point_of_pmt.png}
+    \caption{Recorded count values for different bias voltages. Additionally the determined working point and the expected counts in this region are displayed.}
+    \label{fig:3.2Working_Point_PMT}
+\end{figure}
+
+\clearpage
+\subsection{Manual integrated spectrum with SCA}
+From the integrated spectra, two histograms were created. In figure \ref{fig:3.3.1_Histograms} these are shown. On the left in the figure one finds the initial spectrum made to get a sense of the equipment and the spectrum, and on the right the precision spectrum at $\SI{50 \pm 3}{\milli\volt}$ (the source of the error shall be discussed in the next chapter). 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.1/Histogram_3.3.1_upd_steps_1100_500.png}
+    \caption{Two energy spectra (given in terms of voltage) for different SCA window sizes with the left one having bigger windows varying between $0.01$ and $\SI{5}{\volt}$ while the right one is kept fixed. }
+    \label{fig:3.3.1_Histograms}
+\end{figure}
+
+Here one can clearly see indications of some structure, especially in the sampling with a smaller step size with clear peaks at about $\SI{0.5}{\volt}$ and a resemblance of a peak at around $\SI{1.75}{\volt}$. 
+
+\clearpage
+\subsection{MCA without coincidence and energy calibration}
+In figure \ref{fig:3.3.2_MCA_Spectrum_RAW} the same spectrum as before recorded over 3 hours and 46 minutes is shown. On the x-axis the ADC (Analogue to Digital converter) channel, meaning we are converting the anode signal into some digital value. This x-axis may be calibrated to represent the energy of the recorded photon.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.2/MCA_Spectrum_NoCoinc_RAW_Errors.pdf}
+    \caption{The recorded, uncalibrated, MCA spectrum without coincidence marked with the Poisson error along the curve.}
+    \label{fig:3.3.2_MCA_Spectrum_RAW}
+\end{figure}
+
+\subsection{MCA spectrum with coincidence}
+For the MCA with coincidence and calibration, its curve is displayed in figure \ref{fig:3.4.2_Spectrum_uncalib}. Note the blue band about the central red line indicating two standard deviations. In figure \ref{fig:3.4.2_Spectrum_uncalib_log} the logarithm of counts displayed in the the above plot is depicted. 
+
+The counts recorded with coincidence was about $600$, while when turning of the coincidence module again gave values in the range of $\sim 2300$ counts. The differences to the originally observed counts, the explicit measured values, and how they compare to the expected counts will be discussed in 5.5. 
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Graphics/3.3/3.3.4/3.4.2_MCA_coinc_nocalib.pdf}
+    \caption{The uncalibrated MCA spectrum with coincidence plotted in a linear scale. Note the disappearance of swaths of structure, especially all structure following the first photopeak.}
+    \label{fig:3.4.2_Spectrum_uncalib}
+\end{figure}
+
+\begin{figure}[hb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Graphics/3.3/3.3.4/3.4.2_MCA_coinc_nocalib_LOG.pdf}
+    \caption{The same spectrum as before but plotted in log scale. Note how this gives the impression that the upper and lower errors on the data are different, but this is only due to the logarithmic scaling. }
+    \label{fig:3.4.2_Spectrum_uncalib_log}
+\end{figure}
+
+% --------------------------------------------------------------------
+\clearpage
+\section{Data analysis}
+\label{sec:data_analysis}
+\subsection{Errors and error sources}
+In the first parts of the experiment, the measurements were limited by the detection interval and selected order of magnitude in which we were measuring. This was extrapolated from the saved configuration file as the step size in the saved data was there, meaning one could find the smallest increment and was subsequently used as the error for the voltage dependent experiments, unless another quantity except the absolute value was of interest, as in the SCA measurement. 
+
+The precision of the signal is restricted by noise from the equipment, which leads to some additional error sources in later experiment, were one could for instance not exactly calibrate a signal. 
+
+The later parts of the experiment are so-called counting experiments. Here we wish to count the number of events originating from a radioactive source. In out case the average decay time of the sample much shorter than the expected half-life of the sample, thus justifying the use of Poisson statistics for analyzing the data. For a Poisson distribution we have:
+\begin{equation*}
+    f(k, \lambda) = \frac{\lambda^k e^{-\lambda}}{k!}
+\end{equation*}
+where $f(k, \lambda)$ describes the probability of detecting $k$ events in an interval when we expect $\lambda$ such events. The rate of events, $\lambda$, must be constant; this assumption is valid as long as the aforementioned condition on the source is fulfilled, as is the case. Calculating the first moments of the distributions gives
+\begin{align*}
+    \mu = \lambda \qquad \qquad V(k) = \lambda
+\end{align*}
+meaning that the error on a singular measurement of the count is equal to the square root of the counts ($V = \sigma^2$) for the count experiments. 
+
+\newpage
+\section{Discussion}
+\label{sec:discussion} 
+
+\subsection{Analysis of initial observations}
+\subsubsection{More present line in spectrum}
+In the initial observations from figure \ref{fig:3.1_InitialObservations} in both signals a ribbon surrounding a particular element of the signal has a stronger presence, meaning we have a higher rate of signals (events) in this area. This most likely corresponds to a photopeak in the spectrum, as if one looks carefully, two more can be identified matching what is observed in section 5.4 and 5.5. 
+
+\subsubsection{Fluorescence of NaI(Ti)}
+According to Leo \cite{leo2012techniques}, the re-emission process of a scintillator can in a first-order approximation be described by: 
+\begin{equation}
+    N = \frac{N_0}{\tau_d} \exp{\left(-\frac{t}{\tau_d}\right)}
+    \label{eq:Leo7.1_EasyScint}
+\end{equation}
+Likewise, a more complete process which also describes the rise time of the PMT, the slow re-emission time, as well as a slower re-emission time can be described by the following equation:
+\begin{equation}
+    V(t) = A \exp{\left(-\frac{t}{\tau_\text{slow}}\right)} + B \exp{\left(-\frac{t}{\tau_\text{fast}}\right)} - C \exp{\left(-\frac{t}{\tau}\right)}
+    \label{eq:Leo7.2_8.13_ScintRiseFallSFallF}
+\end{equation}
+In the above model, $A$, $B$, $C$ are the amplitudes of the signal contributions. Additionally, $\tau_\text{slow}$ is the slow decay, $\tau_\text{fast}$ is the fast decay, and $\tau$ the rise time. Thus the terms from left to right will correspond to the slow and fast decays, and the rise time, respectively.  
+
+The typical fluorescence decay time will thus primarily be given by the slow fall time $\tau_\text{slow}$ (or $\tau_d$ in the case of the first-order approximation, equation \eqref{eq:Leo7.1_EasyScint}). To determine this value, a fit was performed with both models to the recorded data set. In figure \ref{fig:FluorescenceLstSq.jl} we have two fits, one for each of the above models (\eqref{eq:Leo7.1_EasyScint} \& \eqref{eq:Leo7.2_8.13_ScintRiseFallSFallF}). From the first fit, we extract a decay time of $\SI{378.5 \pm 3.4}{\nano\second}$ with the error in the first fit being extracted from the estimated covariance matrix. The second fit gives the value $\SI{274.35}{\nano\second}$. The error for the latter fit is the discussed in the next paragraph. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Graphics/3.1/3.1Fluorescence_7_1&7_3&8.13.pdf}
+    \caption{Fits to the dynode to extract decay time. For formulae, consult chapter 7 and 8 of \cite{leo2012techniques}.}
+    \label{fig:FluorescenceLstSq.jl}
+\end{figure}
+To find the parameter the author employed bootstrap aggregation to find the uncertainties on the parameters, fitting the predetermined fitting starts with bootstrapped data from data used in the initial fits. This was combined with small perturbations in the initial parameters to also get a measure of the fits sensitivity to the parameters  \cite{geron2019hands}. The data was sampled 10 000 times, which lead to the values for the second fit given in table \ref{tab:3.1_bootstrapped_data_328}. 
+
+\begin{table}[hb]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+        A [mV] & $\tau_s$ [ns] & B [mV] & $\tau_f$ [ns] & C [mV] & $\tau$ [mV] \\
+        $274.3 \pm 43.3$ & $298.3 \pm 51.8$ & $79.9 \pm 0.9$ & $4.11 \pm 0.42$ & $7074 \pm 2878$ & $36.7 \pm 13.5$ \\
+    \hline
+    \end{tabular}
+    \caption{The fit parameters for the LsqFit.jl fit together with the bootstrapped errors. }
+    \label{tab:3.1_bootstrapped_data_328}
+\end{table}
+
+For the second fits, it is worthwhile discussing the algorithms used for calculating the errors on the fitted parameters. The problem to fit presented in equation \eqref{eq:Leo7.2_8.13_ScintRiseFallSFallF} is a typical example of a non-linear function and is notoriously difficult to fit \cite{garcia2000numerical}. This is usually done by estimating the inverse covariance matrix and then inverting it to find the covariance matrix\footnote{A method of choice is often the Singular Value Decomposition (SVD)}. In the case of the second fit, the algorithm for extracting the covariance matrix failed using the implementation of Levenberg–Marquardt from the LsqFit.jl package \cite{LsqFitjl}, and could as such not estimate the errors directly. 
+As such the fit was redone using the Python implementation of Minuit2, iminuit \cite{iminuit}. The result of this fit is displayed in \ref{fig:Fluorescence_iminuit}. 
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Graphics/3.1/3.1_iminuit_FIT_Padded_start328.pdf}
+    \caption{The iminuit fit to the dynode curve along with the spot marking were the fit is started for the two curves.}
+    \label{fig:Fluorescence_iminuit}
+\end{figure}
+
+The values fits indicate a slower decay time of about $\SI{300 \pm 40}{\nano\second}$, a faster decay at $\SI{6\pm 3}{\nano\second}$, and a rise time of circa $\SI{35\pm1.5}{\nano \second}$. 
+
+The literature value for the slow decay time of a $\ce{NaI(Ti)}$ scintillator is about $\SI{230}{\nano\second}$ \cite{leo2012techniques}, meaning it is within about $1.75\sigma$. This is not very convincing but the signal at hand also exhibits a lot of noise, meaning that with an improved signal measurement and model (see later) a better value could possibly have been achieved. Depending on the age of the detector it is also possible that the scintillator simply takes longer to decay. The authors could not find any authoritative source of the fast decay.  Regardless, the fitted values are small in relation to the slow decay times and thus have some internal consistency. 
+
+The rise times are higher than one would expect, but again due to the age and use of the detector it could be that the rise time has gotten slower. 
+
+In the above fits the signal was fitted from a certain point such that the rise would start at about zero. This method could be improved by fitting to a model were the temporal parts of the exponential terms would be replaced as follows:
+\begin{equation*}
+    -t  \longrightarrow (t-t_\text{shift})
+\end{equation*}
+This would compensate for the fact that the rise is not occuring in the origin. 
+
+Note how this fit could not be done with the anode signal, as the anode signal already incorporates smoothing of the curve as well as additional amplification. 
+
+\subsection{Working point of PMT}
+The working point of the PMT was chosen to be $\SI{850}{\volt}$ mostly based on how it was situated in the plot, being in the middle of the curve and seemingly being in a saddle point. Unfortunately, this value is quite close to the range were saturation starts to occur. The reason that this value was chosen nonetheless, is that the structure in the SCA spectrum was harder to recognize without increasing the voltage. The author was under the impression that this would indeed increase the quality of the data, but it may have been that it contributed more noise (extra counts) without being necessary as the important spectrum -- done with the MCA module -- can compensate for lower count-rates due to the long acquisition time.
+
+One instance of this is that the noise increases with higher voltages, meaning that the discriminator will let through signals originating from the electronics instead of the source. 
+
+\subsection{Manually integrated spectrum with SCA}
+The spectra in figure \ref{fig:3.3.1_Histograms} were found by simply plotting the data with their Poisson errors. We expect these curves to give a rough estimate of the distribution of photon energies, where the LLD voltages combined with the window size gauges the interval of the energies which contribute to the bin $[\text{LLD}, \text{LLD} + \Delta E]$. One should note that there also were constant positive displacement from zero of about $\SI{40}{\milli\volt}$ which was found by observing the SCA signal when the LLD was set to zero, meaning all values are slightly shifted when using the SCA. 
+
+In the left histogram noise may contribute to the leftmost peak, but an important implication of the displacement of the SCA, is that the initial peak close to zero most likely is \textit{not} situated there. This indicates that it is more probable, that it is an additional structure of the spectrum which we at this stage are unable to resolve. From figure \ref{fig:theo_spectrum} an initial photopeak is identified between $0.4$ and $\SI{0.6}{\volt}$. The structure after the peak is not discernible in the left histogram, as well as the Compton edge.  
+
+Additionally, the step of the window of the SCA was not exact but also carried a small offset from the selected value. This is not hugely important, as the SCA spectra are complemented by a measurement with higher resolution and better binning exactness. In any case, this offset was very small, and could also have stemmed from the fact that the oscilloscope could not display differences / select points with arbitrary accuracy.  
+
+In the right histogram remaining features of the histogram can easily be identified with the theoretical contributions. The Compton edge is visible at around $\SI{0.2}{\volt}$ with a photopeak following it. The structure beyond this peak correspond to the expected contributions from the $\ce{^22Ne^* -> ^22Ne}$ transition with a photopeak at $\sim \SI{1.8}{\volt}$ and its Compton edge prior. 
+
+\subsection{MCA without coincidence}
+\subsubsection{Feature recognition}
+In figure \ref{fig:3.3.2_MCA_Spectrum_Annotated} the energy spectrum with marked features is displayed. In the far left of the spectrum, the peak observed in the hand-made spectrum is indeed re-identified slightly displaced from zero. The exact nature of this peak will be discussed later in this section and again after energy calibration. 
+
+In the MCA spectrum the regimes carrying the theoretical features of the Compton edges and photopeaks are easily identifiable for both the $\SI{511}{\kilo\electronvolt}$ and $\SI{1275}{\kilo\electronvolt}$ emissions. Additional contributions which one can recognize are firstly a sharp peak at low energies, and a bump in the Compton continuum preceding the $\SI{511}{\kilo\electronvolt}$-Compton edge. These will be identified and their character will be discussed after the energy calibration has been performed. 
+
+However, it is most probable that the bump corresponds to the backscattering of the photons. This as the energy of backscattered photons is close to the Compton edge energy while also not having a characteristic peak structure, as it is more broader regime where the scattering cross-section is increased. 
+
+With this in mind, the peak in the earlier part of the spectrum would come from some other mechanism in the source. The primary candidate for the peak in question would in that case be the electron capture, but this will have to be determined on energy grounds. 
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.2/3.3.2_MCA_Spectrum_NoCoinc_Annotated_Mod_LeftPeaksUnmarked.pdf}
+    \caption{The uncalibrated but annotated MCA spectrum with the errors removed to make the plot less cluttered. The main features from the theoretical contributions are clearly shown with the two left bumps/peaks left to identify.}
+    \label{fig:3.3.2_MCA_Spectrum_Annotated}
+\end{figure}
+
+\subsubsection{Feature fitting}
+For fitting the peaks a Gaussian with added terms accounting for noise is used:
+\begin{equation}
+    N(x) = A \exp{\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)} + a + b x  % + c x^2
+\end{equation}
+The noise terms can be selected depending on the region currently of interest. From these fits the energy resolution in the area can be found. For the $\SI{1275}{\kilo\electronvolt}$ peak, only a fit with a constant term was chosen, as we only expect a local noise contribution in the region stemming mainly from the equipment. In figure \ref{fig:3.3.3_1275_Peak} this fit is displayed. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.3/3.3.3_1275_keV_Peak_w_sigma.pdf}
+    \caption{Two fits to the $\SI{1275}{\kilo\electronvolt}$ peak with the respective $\chi^2$/ndof values given alongside the characteristic of the fit. On the right hand side the essential fitted parameters for the Gaussian are given.}
+    \label{fig:3.3.3_1275_Peak}
+\end{figure}
+
+When fitting the $\SI{511}{\kilo\electronvolt}$ an additional linear term was considered for the contributions of the Compton edge of the higher energy peak. This is displayed in figure \ref{fig:3.3.3_511_Peak}.
+
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.3/3.3.3_511_keV_Peak_w_sigma.pdf}
+    \caption{Several fits with different kinds of noise compensation for the photopeak at $\SI{511}{\kilo\electronvolt}$. Again, the $\chi^2$/ndof values are given along which kind of noise compensation is considered with the essential parameters color coded (and ordered) on the right side.}
+    \label{fig:3.3.3_511_Peak}
+\end{figure}
+
+
+\clearpage
+For the function to fit the Compton edge, the error function is chosen as the underlying model.
+\begin{equation*}
+    \erf{x} = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}dt
+\end{equation*}
+However, we must consider that the height, width, and position may vary depending on the underlying distribution. Thus we choose the normal Gaussian as the underlying model which we then rewrite in terms of the standard error function. 
+\begin{equation}
+    % A \int_0^{x} \exp{\left( -\frac{(x-\mu)^2}{2\sigma^2} \right)} dx =
+    N(x) = A \int_0^{x} \exp{\left( -\left(\frac{x-\mu}{\sqrt{2}\sigma} \right)^2\right)} dx \overset{t = \frac{x-\mu}{\sqrt{2}\sigma}}{=} B \int_0^{\frac{x-\mu}{\sqrt{2}\sigma}} e^{-t^2} dt = C \erf{\left(\frac{x-\mu}{\sqrt{2}\sigma} \right)}
+\end{equation}
+Where $B$ absorbed the factor coming from the variable substitution while $C$ accounts for the customary scaling of the error function. To this initial model linear noise is added to account for background. \\
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.3/3.3.3_1275CE.pdf}
+    \caption{Two fits for the $\SI{1275}{\kilo\electronvolt}$ Compton edge, one with with constant noise removal and one with linear removal. Model and determined parameters from the fits with errors are included.}
+    \label{fig:3.3.3_1275_CE}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\linewidth]{Graphics/3.3/3.3.3/3.3.3_511CE.pdf}
+    \caption{Two fits for the $\SI{511}{\kilo\electronvolt}$ Compton edge, one with with constant noise removal and one with linear removal. Model and determined parameters from the fits with errors are included.}
+    \label{fig:3.3.3_511_CE}
+\end{figure}
+
+\clearpage
+\subsubsection{Energy calibration}
+By fitting the theoretical positions of the features to the fitted values one can extract a formula for converting energy values to ADC channels. In figure \ref{fig:3.3.3_energy_fit} the result of this fit is displayed. 
+
+\begin{figure}[hb!]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Graphics/3.3/3.3.3/3.3.3_energy_fit_w_residuals.pdf}
+    \caption{Linear fit to the calibration data together with the plotted residuals. Note how the third point is about $5\sigma$ from the expected mean of zero. In the upper plot the energy to ADC conversion is given. Note how this trivially also provides the means to convert the ADC spectra into energy spectra.}
+    \label{fig:3.3.3_energy_fit}
+\end{figure}
+
+If the detector were perfectly linear, we expect a linear relationship. However, as one can see, the third point corresponding to the fit to the Compton edge at $\SI{850}{\kilo\electronvolt}$ is relatively a few standard deviations from line. That this point is weighted so little stems from the fact that the error in this fit was big relative the other values. These uncertainties were adjusted from those from the fits to more accurately describe the inaccuracy in the values. The pull plot can be seen in figure \ref{fig:3.3.3_pull_plot}, which further enforces the point that the third point is an outlier, which indicates an error in this plot or very unusual scintillator behaviour. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Graphics/3.3/3.3.3/3.3.3_energy_fit_pull_plot.pdf}
+    \caption{A plot of the pulls together with their mean with error. Note how the coincidence and localization of this the mean of the pulls and the value $0\pm1$ gives a measure of the quality of the fit. Again, the mean of the pulls is skewed about one sigma due to the abnormal value of the third point. Below, a Gaussian fit to the residuals are given. Note how the majority of the pulls are localized around 0 further indicating the quality of the fit would be high neglecting the third point.}
+    \label{fig:3.3.3_pull_plot}
+\end{figure}
+
+In any case, it seems that the detector displays a linear behaviour. The problem with the fit could be remedied by improving the fit of the third point, namely the Compton edge of the $\SI{1275}{\kilo\electronvolt}$. This should be a primary focus for future investigations or experiments to see if the fit in question need be described by another model or if the dependence of initial values may be reduced. Another approach one may consider would be converting the points into a Gaussian by considering the derivative of the error function. This might lead to better localization and reduction in the fitting error. 
+
+Now the question arises: is the detector linear? For this we choose the null hypothesis $H_0$ that the fit is a faithful representation of the entire data set. By using the Pearson $\chi^2$ test, we can reject this for the overall fit at a p-value of $\SI{1.64e-10}{}$. The run test on the other hand gives a $50\%$ chance of observing the kind of runs above. This is however a much weaker statement than that of the $\chi^2$ test \cite{barlow1993statistics}.
+
+When excluding the third point in the fit and calculating the $\chi^2$ we get a value of about $1.46$. In this case we can certify $H_0$ at a certainty of 5\%.
+
+In conclusion, the detector seems to be linear, but with some inconsistency around $\SI{850}{\kilo\electronvolt}$, which may have resulted from a poor fit, or unexpected behaviour of the scintillator or PMT. 
+
+From the fitted peaks, we can now determine the energy resolution for the detector in the ranges by using equation \ref{eq:energy_resolution}. Performing the calculations for the two fitted peaks gives the resolutions given in table \ref{tab:energy_resolution}.
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+        Peak [keV] & Resolution \\
+    \hline
+        511 & $\SI{18.398 \pm 0.02 e-2}{}$ \\
+    \hline
+        1275 & $\SI{8.677 \pm 0.0250 e-2}{}$ \\
+    \hline
+    \end{tabular}
+    \caption{The energy resolution of the detector given for the two photopeaks. That the energy resolution is better at higher energies most probably stems from the fact that the amount of noise is reduced there. It could also be the case that the detector simply attenuates the signal less in this area.}
+    \label{tab:energy_resolution}
+\end{table}
+
+\clearpage
+\subsubsection{Identification of lower peak and comparison with MCA without coincidence}
+In figure \ref{fig:3.3.3_calibrated511_compton_coninuum} the entire Compton continuum of the $\SI{511}{\kilo\electronvolt}$. From this we can see that lowest peak is around $\SI{60}{\kilo\electronvolt}$ and the bump is at about $\SI{180}{\kilo\electronvolt}$. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Graphics/3.3/3.3.3/3.3.3calibrated_511_Compton_continuum.pdf}
+    \caption{The calibrated MCA spectrum without coincidence.}
+    \label{fig:3.3.3_calibrated511_compton_coninuum}
+\end{figure}
+
+Likewise in figure \ref{fig:3.3.3_unidentified_peak} a fit to the lowest peak is shown. 
+
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.875\linewidth]{Graphics/3.3/3.3.3/3.3.3_low_keV_Peak.pdf}
+    \caption{Three Gaussian fits to the lower energy. Note how this peak is distributed over fewer bins leading to higher uncertainty in the $\chi^2$/dof values. }
+    \label{fig:3.3.3_unidentified_peak}
+\end{figure}
+
+From the calibrated data the authors assumes the lower peak to come from the electron capture process $\ce{^22Na -> ^22Ne^* + \gamma} + \nu_e$ while the peak closer to $\theta=\pi$ from the backscattering process. 
+
+\clearpage
+\subsection{MCA spectrum with coincidence}
+From the counting done with the coincidence gate and for the two PMTs, respectively. These values along with the mean over the measurements can be found in table \ref{tab:3.4.2_Counts}. The coincidence accounts for a bit less than $30\%$ for both PMT. Indeed, when comparing with the upper bound for the counts derived in equation \eqref{eq:expected_detection_rate} one finds they are very close to the values recorded without coincidence. 
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+        Measurement & Coincidence & PMT1 On & PMT2 On \\
+    \hline
+        1 & 623 & 2262 & 2341 \\
+    \hline
+        2 & 630 & 2271 & 2359 \\
+    \hline
+        3 & 667 & 2318 & 2371 \\
+    \hline
+        4 & 679 & 2348 & 2402 \\
+    \hline
+        5 & 722 & 2387 & 2439 \\
+    \hline
+        $\mu$ & 664.1 & 2317.2 & 2382.4 \\
+    \hline
+    \end{tabular}
+    \caption{Some count values for the two PMTs and the count for when the coincidence was turned on. Note with Poisson statistics how the counts for the two individual PMTs are about $1.3\sigma$ from another, giving about a 10\% chance of them having the same mean. This means that there is a $90$\% change that some small parameter differentiates the two PMTs which might skew the coincidence counts. }
+    \label{tab:3.4.2_Counts}
+\end{table}
+
+This can either mean, that the attenuation in air and in the scintillator (short travel distances in the scintillator) are very small, or higher frequency may contribute to the counts via noise counts. The latter may well be possible, but should in that case stem from the discriminator being poorly set, as the used voltage fit the predicted working point curve well.     
+
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Graphics/3.3/3.3.4/3.4.2_MCA_coinc_calib.pdf}
+    \caption{The calibrated MCA coincidence spectrum with errors. Note the low energy peak which still exhibits a certain additional amount of counts.}
+    \label{fig:3.4_calibrated_with_coincidence}
+\end{figure}
+
+Finally, we compare the differences and similarities between the plot displayed in figure \ref{fig:3.4_calibrated_with_coincidence} and in figure \ref{fig:3.3.2_MCA_Spectrum_RAW}. Importantly the overall counts are lower, this is to be expected as even events which should appear in coincidence might not due to the detector resolution. Another important point is that the photopeak of course remains, but also the Compton edge. This is, however completely logical, as the interaction of photons from the $\ce{e^+ e^-}$ annihilation with matter will also happen in coincidence a certain amount of the time. Most interesting is however the fact that a small part of the lowest peak is still there. This would indicate that the emission line at this point should also conserve some momentum or equivalent law to ensure that the emission can be recorded colinear. This is the main reason why the $\SI{1275}{\kilo\electronvolt}$ emission disappears when using coincidence; the chance of two such photons being emitted colinearly and simultaneously from the sample negligible. 
+
+In the case of an infinitely extended detector, many more counts would be observed here (and in general), as the decay could be observed from all angles. 
+
+% --------------------------------------------------------------------
+\clearpage
+\section{Conclusion}
+\label{sec:conclusion}
+In conclusion, the electron positron annihilation was investigated using some tools used in nuclear and particle physics. The decay time of the $\ce{NaI(Ti)}$ scintillator was determined to be about $\SI{300\pm40}{\nano\second}$ alongside its rise time of $\SI{35\pm1.5}{\nano\second}$, giving a characterization of the scintillator used and indicating the aging of the scintillator might have degraded these aspects. 
+
+Subsequently, the saturation of the PMT was determined to start at a bias voltage about $\SI{910}{\volt}$. Also the working point was determined giving a value of circa $\SI{850}{\volt}$. 
+
+With this knowledge initial spectra were taken informing a MCA spectrum both with and without coincidence. From this the author can authoritatively state that the main features from the theoretical spectra were identified with relative errors of a few percent. Finally, the lower peak of the spectrum were determined to stem from x-rays from the decay of the source and the bump of the Compton continuum was identified as the backscattering from the interactions in matter. 
+
+% ----------------------------------------------------------------------------------------------------------
+\clearpage
+\appendix
+\section{Safety considerations}
+\subsection{The activity of the Na source}
+\label{appendix:activity}
+In the experiment we are using a $\ce{^22Na}$ source which as explained in section \ref{sec:introduction} decays into $\ce{^22Ne}$ and a positron. To protect the operator from abnormal doses of radiation, the source is contained in a $\SI{25}{\milli\meter}$ diameter plastic disk. When purchased in April 2009 the initial activity was $\SI{370 \pm 0.05}{\kilo\becquerel}$ (the error here is estimated as such due to the professional fabrication of the source which should imply a high degree of accuracy in the activity). This particular isotope has a half-time of $\SI{2.601 \pm 0.001}{years}$ \cite{manual}. 
+
+The experiment was conducted in November 2021. The time difference between the acquisition of the source and the experiment date was as such about $12.5 \pm 0.05$ years. Using the exponential law:
+\begin{equation*}
+    N(t) = N_0 e^{-\lambda t}
+\end{equation*}
+with the half time $T_{1/2}$ being related to $\lambda$ via: $T_{1/2} = \ln{(2)} / \lambda$ \cite{leo2012techniques}. Plugging in our half-time we get:
+\begin{equation}
+    N_{2021} =  N_{2009} e^{-\lambda \ln{2} / T_{1/2}} = \SI{13.21 \pm 0.18}{\kilo\becquerel}
+    \label{eq:current_activity}
+\end{equation}
+
+% \begin{figure}[hb]
+%     \centering
+%     \includegraphics[scale=0.5]{Graphics/SampleDecay/SampleDecay.pdf}
+%     \caption{Caption}
+%     \label{fig:sample_decay}
+% \end{figure}
+
+\clearpage
+\subsection{Protection by shielding}
+\label{appendix:attenuation}
+In general for beam-attenuation in a medium Beer-Lambert's law holds:
+\begin{equation}
+    I = I_0 \exp{\left[- \int \mu(x) dx\right]}
+    \label{eq:BeerLambert}
+\end{equation}
+Here $I$ is the measured intensity of the beam after traveling a distance x in the material and $\mu(x)$ the linear attenuation coefficient. This is a measure of how much of the beam is scattered/absorbed per unit thickness in the material.
+
+The rate of the source above calculated determined to be about $\SI{13.21}{\kilo\becquerel}$. The energy of the emitted photons is smaller or equal to $\SI{1275}{\kilo e \volt}$ from the $\ce{^22Ne^* -> ^22Ne}$ transition. The density of lead is about $\SI{11.34 \pm 0.005}{\gram \per \centi \meter \cubed}$ \cite{manual}. 
+
+From the table of mass attenuation coefficients in \cite{hubbell_seltzer_2004}, for $\SI{511}{\kilo\electronvolt}$ we have $\mu / \rho_{511} = \SI{16.14 \pm 0.01 e-2}{\centi\meter\squared\per\gram}$, meaning $\mu_{511} = \SI{183.03 \pm 0.01 e-2}{\centi\meter^{-1}}$. This is visualized in figure \ref{fig:z82}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=0.5]{Graphics/Theory/z82.jpg}
+    \vspace{0.25cm}
+    \caption{ \cite{hubbell_seltzer_2004}}
+    \label{fig:z82}
+\end{figure}
+
+For the photon energy from the neon de-excitation the mass attenuation coefficient is not directly available, but can be extracted using a linear interpolation to be $\mu / \rho_{1275} = \SI{5.81 \pm 0.01 e-2}{\centi\meter^{-1}}$, giving $\mu_{1275} = \SI{6.59 \pm 0.57 e-3}{\centi\meter^{-1}}$.
+
+With these combined facts we can formulate the Beer-Lambert law for the $\SI{511}{\kilo\electronvolt}$ $\gamma$-radiation penetrating $\SI{5}{\centi\meter}$ of lead shielding:
+\begin{equation*}
+    I = I_0 e^{-\mu \cdot x} = \SI{1.401 \pm 0.001}{\becquerel}
+\end{equation*}
+Here $I_0$ is the activity of the sample before the shielding as seen in equation \eqref{eq:current_activity} and $\mu$ as retrieved from \cite{hubbell_seltzer_2004}.
+
+If all the radiation had had the energy $\SI{1275}{\kilo\electronvolt}$, the attenuation would give: 
+\begin{equation*}
+    I = I_0 e^{-\mu \cdot x} = \SI{12780.0 \pm 170.0}{\becquerel}
+\end{equation*}
+Note that these are outliers, and as such we mostly expect the $\SI{511}{\kilo\electronvolt}$ contributions, leading the above estimate to be way beyond the actual values. 
+
+\clearpage
+\subsection{Average dose}
+The maximum dose limit in Switzerland for non exposed persons is about $\SI{1}{\milli\sievert\per year}$. The same regulation provides a table of the doses given for different isotopes. In the case of $\ce{^22Na}$ its dose at $\SI{10}{\milli\meter}$ in tissue is $h_{10} = \SI{0.33}{(\milli\sievert\per\hour) \per \giga \becquerel}$ \cite{manual}. 
+
+Using a working distance of about $\SI{1}{\meter}$ and a total time in the lab of about $\SI{20}{hours}$ together with the calculated activity one gets a total dose $D \approx \SI{87}{\nano\sievert}$. This is way below the average dosage recommended per year. 
+
+For the shielded source using the activity resulting from Beer-Lambert's law one gets a dose $D_{S - \SI{511}{\kilo\electronvolt}} \approx \SI{9}{\pico\sievert}$ as well as $D_{S - \SI{1275}{\kilo\electronvolt}} \approx \SI{84}{\nano\sievert}$. 
+
+\clearpage
+
+% -------------------------------------------------------------------------------------------------------------------------------
+
+% REFERENCE TO BIBLIOGRAPHY
+\bibliographystyle{unsrt}
+\bibliography{bibliography.bib}
+
+
+
+\end{document}
+

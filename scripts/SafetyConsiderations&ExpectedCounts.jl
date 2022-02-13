@@ -11,6 +11,8 @@ begin
     using CSV
     using DataFrames
 end
+cd(raw"C:\Users\marcu\OneDrive\Desktop\PraktikumIII\e+e-_Annihilation")
+
 
 ## Calculating the activity of the sample
 T1_2 = 2.601 ± 0.001
@@ -90,5 +92,7 @@ N̄ = d^2 / (16 * r^2) * N₂₀₂₁  |> u"Bq"
 total_counts_upper_bound = N̄ * 10 # second measurment interval
 # assume travel distance d from above
 μ_NaTi_511keV = 0.3u"cm^-1"
+μ_NaTi_1275keV = 0.13u"cm^-1" # very hand poorly determined. Between 0.2 and 0.1 on a log-scale graph
 
-real_detection = total_counts_upper_bound* exp(-μ_NaTi_511keV * d)
+real_detection = total_counts_upper_bound*( 2*exp(-(1u"cm^-1"-μ_NaTi_511keV) * d) + 1* exp(-(1u"cm^-1"-μ_NaTi_1275keV) * d) )
+# real_detection = total_counts_upper_bound* exp(-(1u"cm^-1"-μ_NaTi_511keV) * d)
